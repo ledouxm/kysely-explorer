@@ -1,0 +1,36 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite-node --watch ./src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/node": "^22.13.1",
+    "@types/ws": "^8.5.14",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0",
+    "vite-node": "^3.0.5"
+  },
+  "dependencies": {
+    "@libsql/kysely-libsql": "^0.4.1",
+    "@tediousjs/connection-string": "^0.6.0",
+    "@trpc/client": "11.0.0-rc.761",
+    "@trpc/server": "11.0.0-rc.761",
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "kysely": "^0.27.5",
+    "kysely-codegen": "^0.17.0",
+    "mysql2": "^3.12.0",
+    "pg": "^8.13.2",
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
+  }
+}

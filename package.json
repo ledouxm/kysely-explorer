@@ -1,0 +1,16 @@
+{
+  "name": "kysely-explorer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "backend": "pnpm --filter backend",
+    "frontend": "pnpm --filter frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@chakra-ui/cli": "^3.8.0"
+  }
+}
