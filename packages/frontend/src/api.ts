@@ -7,6 +7,7 @@ export const connectToWSS = (connectionString: string) => {
     auth: {
       connectionString,
     },
+    retries: 0,
     autoConnect: false,
   });
 

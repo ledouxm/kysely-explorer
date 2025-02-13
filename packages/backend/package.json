@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite-node --watch ./src/index.ts"
+    "dev": "cross-env NODE_OPTIONS=--experimental-vm-modules vite-node --watch ./src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +14,7 @@
     "@types/cors": "^2.8.17",
     "@types/node": "^22.13.1",
     "@types/ws": "^8.5.14",
+    "cross-env": "^7.0.3",
     "typescript": "~5.7.2",
     "vite": "^6.1.0",
     "vite-node": "^3.0.5"
@@ -25,6 +26,7 @@
     "@trpc/server": "11.0.0-rc.761",
     "better-sqlite3": "^11.8.1",
     "cors": "^2.8.5",
+    "esbuild": "^0.25.0",
     "kysely": "^0.27.5",
     "kysely-codegen": "^0.17.0",
     "mysql2": "^3.12.0",

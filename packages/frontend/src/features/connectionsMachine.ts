@@ -1,13 +1,10 @@
 import { Socket } from "socket.io-client";
 import {
-  Actor,
   ActorRefFromLogic,
   assertEvent,
   assign,
   createActor,
-  fromPromise,
   setup,
-  spawnChild,
 } from "xstate";
 import { connectToWSS } from "../api";
 
@@ -54,6 +51,9 @@ export const connectionsMachine = setup({
     selectConnection: assign({
       selected: ({ event }) => {
         assertEvent(event, "SELECT_CONNECTION");
+        if (event.connection.getSnapshot().value === "disconnected") {
+          event.connection.send({ type: "CONNECT" });
+        }
         return event.connection;
       },
     }),

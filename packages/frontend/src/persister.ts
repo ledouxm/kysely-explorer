@@ -1,7 +1,7 @@
 import { AsyncStorage } from "@tanstack/react-query-persist-client";
 import { createStore, del, get, set } from "idb-keyval";
 
-const queryStore = createStore("query", "query-cache");
+const queryStore = createStore("kysely-explorer", "query-cache");
 
 export const asyncQueryStorage: AsyncStorage = {
   getItem: async (key) => {

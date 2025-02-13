@@ -75,10 +75,16 @@ const DbFileUpdater = ({ connection }: { connection: WsActor }) => {
   export const db = new Kysely<DB>({
       dialect,
   })";
+
         `,
       "file:///node_modules/db.ts",
     );
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      `export const output = (data: any) => {}`,
+      "file:///node_modules/output.ts",
+    );
   }, [monaco, dialect]);
+
   return null;
 };
 

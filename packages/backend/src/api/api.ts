@@ -27,10 +27,7 @@ export const connectAndGetDialect = async (string: string) => {
   const dialect = dialectManager.getDialect(inferredDialectName);
 
   if (inferredDialectName.includes("sqlite")) {
-    const fileExists = await fs
-      .access(connectionString)
-      .then(() => true)
-      .catch(() => false);
+    const fileExists = await doesFileExists(connectionString);
     if (!fileExists) {
       throw new Error("SQLite database file does not exist");
     }
@@ -56,7 +53,7 @@ export const getTypeString = async (
   });
 };
 
-const fileExists = (path: string) =>
+const doesFileExists = (path: string) =>
   fs
     .access(path)
     .then(() => true)

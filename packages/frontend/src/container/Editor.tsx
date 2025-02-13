@@ -14,9 +14,10 @@ import { MultiSplitPane } from "./MultiSplitPane";
 import Split from "react-split";
 import { DbConnections } from "../features/auth/WithConnectionString";
 import { editorOptions, TypeEditor } from "./TypeEditor";
+import { CodeEditor } from "./CodeEditor";
 
 export const MainEditor = () => {
-  const [monaco, setMonaco] = useState<Monaco | null>(null);
+  const monaco = useMonaco();
 
   useLibrariesTypes(monaco);
   // useEffect(() => {
@@ -54,14 +55,7 @@ export const MainEditor = () => {
     >
       <DbConnections />
       <TypeEditor />
-      <Editor
-        height="100%"
-        defaultLanguage="typescript"
-        defaultValue={`import { db } from "db";`}
-        beforeMount={setMonaco}
-        theme="vs-dark"
-        options={editorOptions}
-      />
+      <CodeEditor />
     </Split>
   );
 };
