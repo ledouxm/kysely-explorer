@@ -76,12 +76,10 @@ const DbFileUpdater = ({ connection }: { connection: WsActor }) => {
       dialect,
   })";
 
+  export const output = (data: any) => {}
+
         `,
-      "file:///node_modules/db.ts",
-    );
-    monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      `export const output = (data: any) => {}`,
-      "file:///node_modules/output.ts",
+      "file:///node_modules/kysely-explorer.ts",
     );
   }, [monaco, dialect]);
 
@@ -114,4 +112,7 @@ export const editorOptions = {
   automaticLayout: true,
   minimap: { enabled: false },
   lineNumbers: "off",
+  glyphMargin: false,
+  lineDecorationsWidth: 0,
+  lineNumbersMinChars: 0,
 } satisfies EditorProps["options"];

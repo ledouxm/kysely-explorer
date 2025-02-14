@@ -1,4 +1,4 @@
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { createServer } from "node:http";
 
 import { Server, Socket } from "socket.io";
@@ -50,6 +50,27 @@ export const startWsServer = () => {
           );
         }
       }
+
+      if (event === "execute-sql") {
+        const [code] = args;
+        try {
+          console.log(code);
+          // @ts-ignore
+          const result = await socket.db?.executeQuery({
+            sql: code,
+            parameters: [] as any[],
+          });
+
+          console.log("result", result);
+          socket.emit("sql-result", result.rows);
+        } catch (e: any) {
+          console.error(e);
+          socket.emit(
+            "sql-error",
+            [e.name, e.message].filter(Boolean).join(": "),
+          );
+        }
+      }
     });
 
     const getAndSendTypes = async () => {
@@ -64,8 +85,11 @@ export const startWsServer = () => {
 
         socket.typeString = await getTypeString(socket.db, socket.dialect);
 
+        const tables = await socket.db.introspection.getTables();
+
         socket.emit("db-types", {
           typeString: socket.typeString,
+          tables,
           dialect: socket.dialect,
         });
       } catch (e: any) {

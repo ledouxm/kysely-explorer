@@ -32,7 +32,10 @@ export const executeTs = async ({ code, db }: ExecuteOptions) => {
     result = value;
   };
 
-  const injectedModules = { db, console, output };
+  const injectedModules = {
+    "kysely-explorer": { db, output },
+    console: { console },
+  };
 
   const context = createContext({
     __injectedModules: injectedModules,
@@ -40,7 +43,14 @@ export const executeTs = async ({ code, db }: ExecuteOptions) => {
 
   const linker = (specifier: string) => {
     if (specifier in injectedModules) {
-      const exportCode = `export const ${specifier} = __injectedModules.${specifier}`;
+      const injectedModule = (injectedModules as any)[specifier];
+
+      const exportCode = Object.keys(injectedModule)
+        .map(
+          (key) =>
+            `export const ${key} = __injectedModules["${specifier}"]["${key}"];`,
+        )
+        .join("\n");
 
       return new SourceTextModule(exportCode, {
         context,

@@ -7,6 +7,13 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { asyncQueryStorage } from "./persister.ts";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Provider } from "./components/ui/provider";
+import { ColorModeProvider } from "./components/ui/color-mode.tsx";
+import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
+import { theme } from "./theme";
+
+export const system = createSystem(defaultConfig, {
+  theme,
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,9 +34,11 @@ createRoot(document.getElementById("root")!).render(
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Provider>
-        <App />
-      </Provider>
+      <ChakraProvider value={system}>
+        <ColorModeProvider defaultTheme="dark">
+          <App />
+        </ColorModeProvider>
+      </ChakraProvider>
     </PersistQueryClientProvider>
   </StrictMode>,
 );
