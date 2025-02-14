@@ -2,7 +2,11 @@ import { Center, Flex, Stack, styled } from "#styled-system/jsx";
 import { useQuery } from "@tanstack/react-query";
 import { PropsWithChildren, useState } from "react";
 import { useSelector } from "@xstate/react";
-import { connectionsActor, WsMachine } from "../connectionsMachine";
+import {
+  connectionsActor,
+  databasesToTsv,
+  WsMachine,
+} from "../connectionsMachine";
 import { useForm } from "react-hook-form";
 import { ActorRefFromLogic } from "xstate";
 import { Tooltip } from "../../components/Tooltip";
@@ -31,6 +35,9 @@ export const DbConnections = ({ children }: PropsWithChildren<{}>) => {
 const Connection = ({ wsActor }: { wsActor: ActorRefFromLogic<WsMachine> }) => {
   const value = useSelector(wsActor, (state) => state.value);
   const name = useSelector(wsActor, (state) => state.context.connectionString);
+  const tables = useSelector(wsActor, (state) => state.context.tables);
+
+  if (tables) console.log(databasesToTsv(tables));
 
   const selected = useSelector(
     connectionsActor,

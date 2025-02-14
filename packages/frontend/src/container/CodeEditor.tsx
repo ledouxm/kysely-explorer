@@ -9,9 +9,11 @@ import Split from "react-split";
 import { styled, Flex, Stack } from "#styled-system/jsx";
 import { KeyCode, KeyMod } from "monaco-editor";
 import { FilesBar } from "../features/FilesBar";
-import { Button } from "../components/Button";
+import { Button, IconButton } from "../components/Button";
 import { css } from "#styled-system/css";
 import { FileActor, filesActor } from "../features/filesMachine";
+import { MessageCircleQuestionIcon } from "lucide-react";
+import { LLMDialog } from "../features/LLM/LLMDialog";
 
 export const CodeEditor = () => {
   const connection = useSelector(
@@ -69,6 +71,9 @@ export const CodeEditor = () => {
           zIndex="1"
         >
           <FilesBar executeTs={() => executeTsMutation.mutate()} />
+        </styled.div>
+        <styled.div pos="absolute" bottom="8px" right="24px" zIndex="1">
+          <LLMDialog />
         </styled.div>
         <Editor
           wrapperProps={{

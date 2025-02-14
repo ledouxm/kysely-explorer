@@ -36,6 +36,33 @@ export interface ColumnMetadata {
   readonly comment?: string;
 }
 
+const formatColumnDefinition = (column: ColumnMetadata): string => {
+  const parts = [
+    column.dataType,
+    column.isNullable ? "NULL" : "NOT NULL",
+    column.hasDefaultValue ? "DEFAULT" : "",
+    column.isAutoIncrementing ? "AUTO_INCREMENT" : "",
+    column.comment ? `COMMENT '${column.comment}'` : "",
+  ].filter(Boolean);
+
+  return parts.join(" ");
+};
+
+const tableToTsv = (table: TableMetadata): string => {
+  const header = `Table: ${table.schema ? `${table.schema}.` : ""}${table.name} (${table.isView ? "VIEW" : "TABLE"})`;
+  const columnRows = table.columns.map(
+    (col) => `${col.name}\t${formatColumnDefinition(col)}`,
+  );
+
+  return `${header}\n${columnRows.join("\n")}`;
+};
+
+export const databasesToTsv = (tables: TableMetadata[]): string => {
+  const tableDefinitions = tables.map(tableToTsv);
+  // Add two newlines between tables for better readability
+  return tableDefinitions.join("\n\n");
+};
+
 export const connectionsMachine = setup({
   types: {
     context: {} as { connections: WsActor[]; selected: WsActor | null },
