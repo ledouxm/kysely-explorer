@@ -1,22 +1,19 @@
-import { z } from "zod";
+import fs from "fs/promises";
+import { Kysely } from "kysely";
 import {
-  generate,
-  PostgresDialect,
   ConnectionStringParser,
-  Cli,
-  DialectManager,
   DEFAULT_DATE_PARSER,
   DEFAULT_NUMERIC_PARSER,
-  GeneratorDialect,
+  DialectManager,
   DialectName,
+  generate,
 } from "kysely-codegen";
-import { Kysely } from "kysely";
-import fs from "fs/promises";
 
 const dialectManager = new DialectManager({
   dateParser: DEFAULT_DATE_PARSER,
   numericParser: DEFAULT_NUMERIC_PARSER,
 });
+
 export const connectAndGetDialect = async (string: string) => {
   const connectionStringParser = new ConnectionStringParser();
   const { connectionString, inferredDialectName } =

@@ -2,14 +2,10 @@ import { Kysely, sql } from "kysely";
 import { createServer } from "node:http";
 
 import { Server, Socket } from "socket.io";
-import { connectAndGetDialect, getTypeString } from "./api";
+import { connectAndGetDialect, getTypeString } from "./ws";
 import { DialectName } from "kysely-codegen";
 import { executeTs } from "./ts-executor";
-
-const ref = {} as {
-  io: Server;
-  httpServer: ReturnType<typeof createServer>;
-};
+import { ref, registerViteHmrServerRestart } from "../hmr";
 
 export const startWsServer = () => {
   const httpServer = createServer();
@@ -108,28 +104,9 @@ export const startWsServer = () => {
   io.on("connection", handleConnection);
 
   httpServer.listen(3001, () => {
-    console.log("listening on *:3001");
+    console.log("WS listening on *:3001");
   });
 };
-
-registerViteHmrServerRestart();
-export async function registerViteHmrServerRestart() {
-  const hot = (import.meta as any).hot;
-  if (hot) {
-    await hot.data.stopping;
-    // This is executed on file changed
-    let reload = async () => {
-      console.info("Performing an HMR reload...");
-      ref.io.close();
-      ref.httpServer.close();
-    };
-    hot.on("vite:beforeFullReload", async () => {
-      const stopping = reload();
-      reload = () => Promise.resolve();
-      if (hot) hot.data.stopping = stopping;
-    });
-  }
-}
 
 declare module "socket.io" {
   interface Socket {

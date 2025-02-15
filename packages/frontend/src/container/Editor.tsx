@@ -6,13 +6,13 @@ import Editor, {
   EditorProps,
 } from "@monaco-editor/react";
 import * as M from "monaco-editor";
-import { useQueries } from "@tanstack/react-query";
+import { queryOptions, useQueries } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { styled } from "#styled-system/jsx";
 import { css } from "#styled-system/css";
 import { MultiSplitPane } from "./MultiSplitPane";
 import Split from "react-split";
-import { DbConnections } from "../features/auth/WithConnectionString";
+import { DbConnections } from "../features/ws/DbConnections";
 import { editorOptions, TypeEditor } from "./TypeEditor";
 import { CodeEditor } from "./CodeEditor";
 
@@ -20,18 +20,6 @@ export const MainEditor = () => {
   const monaco = useMonaco();
 
   useLibrariesTypes(monaco);
-  // useEffect(() => {
-  //   const resizeObserver = new ResizeObserver(() => {
-  //     typeEditorRef.current?.layout();
-  //     mainEditorRef.current?.layout();
-  //   });
-
-  //   if (containerRef.current) {
-  //     resizeObserver.observe(containerRef.current);
-  //   }
-
-  //   return () => resizeObserver.disconnect();
-  // }, [monaco]);
 
   return (
     <Split
@@ -64,36 +52,40 @@ const libraries = ["kysely@0.27.2"];
 
 const useLibrariesTypes = (monaco: Monaco | null) => {
   const typesQueries = useQueries({
-    queries: libraries.map((lib) => ({
-      queryKey: ["types", lib],
-      enabled: !!monaco,
-      queryFn: async () => {
-        const manifest = await fetch(
-          `https://data.jsdelivr.com/v1/package/npm/${lib}/flat`,
-        ).then((r) => r.json());
+    queries: libraries.map((lib) =>
+      queryOptions({
+        queryKey: ["types", lib],
+        enabled: !!monaco,
+        gcTime: Infinity,
 
-        const files = await Promise.all<{
-          name: string;
-          content: string;
-        }>(
-          manifest.files.map(async (typeFile: { name: string }) => {
-            const content = await fetch(
-              `https://cdn.jsdelivr.net/npm/${lib}${typeFile.name}`,
-            ).then((r) => r.text());
+        queryFn: async () => {
+          const manifest = await fetch(
+            `https://data.jsdelivr.com/v1/package/npm/${lib}/flat`,
+          ).then((r) => r.json());
 
-            return { name: typeFile.name, content };
-          }),
-        );
+          const files = await Promise.all<{
+            name: string;
+            content: string;
+          }>(
+            manifest.files.map(async (typeFile: { name: string }) => {
+              const content = await fetch(
+                `https://cdn.jsdelivr.net/npm/${lib}${typeFile.name}`,
+              ).then((r) => r.text());
 
-        const packageJson = files.find((f) => f.name === "/package.json");
+              return { name: typeFile.name, content };
+            }),
+          );
 
-        return {
-          lib,
-          files: files,
-          packageJson: packageJson ? JSON.parse(packageJson.content) : null,
-        };
-      },
-    })),
+          const packageJson = files.find((f) => f.name === "/package.json");
+
+          return {
+            lib,
+            files: files,
+            packageJson: packageJson ? JSON.parse(packageJson.content) : null,
+          };
+        },
+      }),
+    ),
   });
 
   useEffect(() => {

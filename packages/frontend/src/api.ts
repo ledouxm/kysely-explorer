@@ -1,4 +1,6 @@
 import { io, Socket } from "socket.io-client";
+import { hc } from "hono/client";
+import { AppRouter } from "../../backend/src/router/publicRouter";
 
 const sockets = new Map<string, Socket>();
 
@@ -21,3 +23,7 @@ export const cleanup = () => {
     socket.disconnect();
   }
 };
+
+export const api = hc<AppRouter>("http://localhost:3005/api", {
+  init: { credentials: "include", mode: "cors" },
+});
