@@ -6,12 +6,13 @@ import {
   connectionsActor,
   databasesToTsv,
   WsMachine,
-} from "../connectionsMachine";
+} from "./connectionsMachine";
 import { useForm } from "react-hook-form";
 import { ActorRefFromLogic } from "xstate";
 import { Tooltip } from "../../components/Tooltip";
-import { Button } from "../../components/Button";
+import { Button, IconButton } from "../../components/Button";
 import { Input } from "../../components/Input";
+import { XIcon } from "lucide-react";
 
 export const DbConnections = ({ children }: PropsWithChildren<{}>) => {
   const connections = useSelector(
@@ -19,25 +20,40 @@ export const DbConnections = ({ children }: PropsWithChildren<{}>) => {
     (state) => state.context.connections,
   );
 
+  const value = useSelector(connectionsActor, (state) => state.value);
+  const toAdd = useSelector(connectionsActor, (state) => state.context.toAdd);
+  const toRemove = useSelector(
+    connectionsActor,
+    (state) => state.context.toRemove,
+  );
   return (
     <Stack flex="1" p="16px">
       <ConnectionForm />
       <Stack>
         {connections.map((connection) => (
-          <Connection wsActor={connection} key={connection.id} />
+          <Connection
+            wsActor={connection}
+            gettingRemoved={value === "removing" ? toRemove : null}
+            key={connection.id}
+          />
         ))}
+        {value === "adding" && <DummyConnection name={toAdd ?? ""} />}
       </Stack>
       {children}
     </Stack>
   );
 };
 
-const Connection = ({ wsActor }: { wsActor: ActorRefFromLogic<WsMachine> }) => {
+const Connection = ({
+  wsActor,
+  gettingRemoved,
+}: {
+  wsActor: ActorRefFromLogic<WsMachine>;
+  gettingRemoved: number | null;
+}) => {
   const value = useSelector(wsActor, (state) => state.value);
   const name = useSelector(wsActor, (state) => state.context.connectionString);
-  const tables = useSelector(wsActor, (state) => state.context.tables);
-
-  if (tables) console.log(databasesToTsv(tables));
+  const id = useSelector(wsActor, (state) => state.context.id);
 
   const selected = useSelector(
     connectionsActor,
@@ -45,6 +61,7 @@ const Connection = ({ wsActor }: { wsActor: ActorRefFromLogic<WsMachine> }) => {
   );
 
   const isSelected = selected?.id === wsActor.id;
+  const isGettingRemoved = gettingRemoved === id;
 
   const error = useSelector(wsActor, (state) => state.context.error);
 
@@ -56,7 +73,7 @@ const Connection = ({ wsActor }: { wsActor: ActorRefFromLogic<WsMachine> }) => {
         : "red-1";
 
   return (
-    <Flex alignItems="center">
+    <Flex alignItems="center" opacity={isGettingRemoved ? 0.5 : 1}>
       <Tooltip content={<styled.div>{error || value}</styled.div>}>
         <styled.div
           bgColor={color}
@@ -78,6 +95,37 @@ const Connection = ({ wsActor }: { wsActor: ActorRefFromLogic<WsMachine> }) => {
           })
         }
       >
+        {hidePasswords(name)}
+      </styled.div>
+      <IconButton
+        onClick={() => {
+          connectionsActor.send({
+            type: "REMOVE_CONNECTION",
+            id: id as any,
+          });
+        }}
+      >
+        <XIcon />
+      </IconButton>
+    </Flex>
+  );
+};
+
+const DummyConnection = ({ name }: { name: string }) => {
+  return (
+    <Flex alignItems="center">
+      <Tooltip content={<styled.div>{"loading"}</styled.div>}>
+        <styled.div
+          bgColor={"red-1"}
+          borderRadius="50%"
+          w="10px"
+          h="10px"
+          minW="10px"
+          minH="10px"
+          mr="8px"
+        ></styled.div>
+      </Tooltip>
+      <styled.div cursor="pointer" fontWeight={"normal"}>
         {hidePasswords(name)}
       </styled.div>
     </Flex>

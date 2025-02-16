@@ -2,7 +2,7 @@ import { Editor, Monaco, useMonaco } from "@monaco-editor/react";
 import { editorOptions } from "./TypeEditor";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useSelector } from "@xstate/react";
-import { connectionsActor } from "../features/connectionsMachine";
+import { connectionsActor } from "../features/ws/connectionsMachine";
 import { useMutation } from "@tanstack/react-query";
 import { useSocketEvent } from "../features/useSocketEvent";
 import Split from "react-split";

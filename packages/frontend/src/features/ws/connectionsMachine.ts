@@ -4,9 +4,10 @@ import {
   assertEvent,
   assign,
   createActor,
+  fromPromise,
   setup,
 } from "xstate";
-import { connectToWSS } from "../api";
+import { api, connectToWSS } from "../../api";
 
 export type WsActor = ActorRefFromLogic<WsMachine>;
 export interface TableMetadata {
@@ -65,43 +66,41 @@ export const databasesToTsv = (tables: TableMetadata[]): string => {
 
 export const connectionsMachine = setup({
   types: {
-    context: {} as { connections: WsActor[]; selected: WsActor | null },
+    context: {} as {
+      connectionStrings: string[];
+      connections: WsActor[];
+      selected: WsActor | null;
+      toAdd: string | null;
+      toRemove: number | null;
+    },
     events: {} as
       | { type: "SELECT_CONNECTION"; connection: WsActor }
       | { type: "ADD_CONNECTION_STRING"; connectionString: string }
       | { type: "REMOVE_CONNECTION"; id: string },
   },
+  actors: {
+    getConnections: fromPromise(async () => {
+      const resp = await api["get-connections"].$get().then((r) => r.json());
+      return resp;
+    }),
+    addConnection: fromPromise(
+      async ({ input }: { input: { connectionString: string } }) => {
+        const resp = await api["create-connection"]
+          .$post({ json: input })
+          .then((r) => r.json());
+        return resp;
+      },
+    ),
+    removeConnection: fromPromise(
+      async ({ input }: { input: { id: number } }) => {
+        await api["remove-connection"]
+          .$post({ json: { connectionId: input.id } })
+          .then((r) => r.json());
+        return input.id;
+      },
+    ),
+  },
   actions: {
-    addConnectionString: assign(({ context, spawn, event }) => {
-      assertEvent(event, "ADD_CONNECTION_STRING");
-      const connection = spawn(wsMachine, { input: event.connectionString });
-      context.connections = [...context.connections, connection];
-
-      if (!context.selected) {
-        context.selected = connection;
-      }
-
-      return context;
-    }),
-    removeConnection: assign(({ context, event }) => {
-      assertEvent(event, "REMOVE_CONNECTION");
-
-      const connection = context.connections.find(
-        (connection) => connection.id === event.id,
-      );
-
-      connection?.send({ type: "DISCONNECT" });
-
-      context.connections = context.connections.filter(
-        (connection) => connection.id !== event.id,
-      );
-
-      if (context.selected?.id === event.id) {
-        context.selected = null;
-      }
-
-      return context;
-    }),
     selectConnection: assign({
       selected: ({ event }) => {
         assertEvent(event, "SELECT_CONNECTION");
@@ -114,16 +113,115 @@ export const connectionsMachine = setup({
   },
 }).createMachine({
   /** @xstate-layout N4IgpgJg5mDOIC5QAoC2BDAxgCwJYDswBKAOlwgBswBiAQQBF6B9AYQHkA5DgURYBUAkpyYBlPgCUBHAOIBtAAwBdRKAAOAe1i4ALrnX4VIAB6IALACYANCACeicwHYAzCVPyAbOYCsAXx-W0LDxCUnIqanFuAFk2ADVuVk4efiEOBWUkEA0tXX1DEwQATnkSAA4vAEYvTy9rOwQKhwdXLycK7z8AjBwCYjJKGhFuABlePkSuMdT0w2ydPQNMgsLTEnN3au86xFKKkl9OkHx1CDhDQJ6Q2c15vKXEAFp3bYQnw4vgvrCwa5yF-MQFVM7hITnM8jaW1siCcDlWTi8hVhBz8QA */
-  initial: "idle",
+  initial: "loading",
   context: {
+    connectionStrings: [],
     connections: [],
+    toAdd: null,
+    toRemove: null,
     selected: null,
   },
   states: {
+    loading: {
+      invoke: {
+        id: "getConnections",
+        src: "getConnections",
+        onDone: {
+          target: "idle",
+          actions: assign({
+            connectionStrings: ({ event }) =>
+              event.output.connections.map((conn) => conn.connection_string),
+            connections: ({ event, spawn }) =>
+              event.output.connections.map((conn) =>
+                spawn(wsMachine, {
+                  input: {
+                    connectionString: conn.connection_string,
+                    id: conn.id as any,
+                  },
+                }),
+              ),
+          }),
+        },
+        onError: {
+          target: "idle",
+        },
+      },
+    },
+    adding: {
+      invoke: {
+        id: "addConnection",
+        src: "addConnection",
+        input: ({ context }) => ({ connectionString: context.toAdd! }),
+        onDone: {
+          target: "idle",
+          actions: [
+            assign(({ context, event, spawn }) => {
+              const { connection_string, id } = event.output.connection!;
+              const connection = spawn(wsMachine, {
+                input: { connectionString: connection_string, id: id as any },
+              });
+              context.connections = [...context.connections, connection];
+
+              if (!context.selected) {
+                context.selected = connection;
+              }
+
+              return context;
+            }),
+            assign({ toAdd: null }),
+          ],
+        },
+        onError: {
+          target: "idle",
+          actions: assign({ toAdd: null }),
+        },
+      },
+    },
+    removing: {
+      invoke: {
+        id: "removeConnection",
+        src: "removeConnection",
+        input: ({ context }) => ({ id: context.toRemove! }),
+        onDone: {
+          target: "idle",
+          actions: assign(({ context, event }) => {
+            const id = event.output as any;
+            console.log("removing", id);
+            const connection = context.connections.find(
+              (connection) => connection.getSnapshot().context.id === id,
+            );
+
+            connection?.send({ type: "DISCONNECT" });
+
+            console.log("before", context.connections);
+
+            context.connections = context.connections.filter(
+              (conn) => conn !== connection,
+            );
+            console.log("after", context.connections);
+
+            if (context.selected?.getSnapshot().context.id === id) {
+              context.selected = null;
+            }
+
+            context.toRemove = null;
+
+            return context;
+          }),
+        },
+        onError: {
+          target: "idle",
+          actions: assign({ toRemove: null }),
+        },
+      },
+    },
     idle: {
       on: {
         ADD_CONNECTION_STRING: {
-          actions: "addConnectionString",
+          target: "adding",
+          actions: assign({
+            toAdd: ({ event }) => event.connectionString,
+          }),
           guard: ({ context, event }) => {
             return !context.connections.some(
               (connection) =>
@@ -133,7 +231,10 @@ export const connectionsMachine = setup({
           },
         },
         REMOVE_CONNECTION: {
-          actions: "removeConnection",
+          target: "removing",
+          actions: assign({
+            toRemove: ({ event }) => event.id as any,
+          }),
         },
         SELECT_CONNECTION: {
           actions: "selectConnection",
@@ -155,10 +256,12 @@ const wsMachine = setup({
       dialect: string | null;
       tables: TableMetadata[];
       error: any;
+      id: number;
     },
-    input: {} as string,
+    input: {} as { connectionString: string; id: number },
     events: {} as
       | { type: "CONNECT" }
+      | { type: "STOP" }
       | { type: "DISCONNECT" }
       | { type: "REFETCH_TYPES" }
       | { type: "DB_ERROR"; data: any }
@@ -223,7 +326,8 @@ const wsMachine = setup({
   /** @xstate-layout N4IgpgJg5mDOIC5QAoC2BDAxgCwJYDswBKAYgGEB5AOSoFEyAVAbQAYBdRUABwHtZcALrh75OIAB6IALACYANCACeiGQFYWAOgBsAdgCcWgBw7VAX1MK0WPIVIARAJIBlSjXrN2Y3vyEixkhFkFZUDZDVVDVT0AZhNzSwwcAmISOwAhAH1aACVsimzWDiQQb0FhUWKAoKVEaKktbWiZQwBGNXiQKyTbDUwRQkwhfChUzNc6Rlo7Qq8+Mr9K2r0WjRNglT1VDSkWLXaLTsSbYg0Ad3Qy4YAxHgAnBkUuOFGMhyorihni0t8K0CqwiwWqo9qp1ghWuEOl1jkRev0wINICRsrQrrQGGQABIZBgATQACrQnF9uHNfv5apC1OCWjodNtVNE2mYDjDknCILhYH18AMBMj0hlxu4pqSSuTypSENFlqswTUZZFtCwYnEOvgeBA4GJ2bZZj4pYsEABaLTgs3Qo4c+F8xFDKAG+Z-CQqFhSDR6XY0xVqTQ7UFW6w286XKA3e6PHXfSULf6IVQ6Qzbb0KkIyFjJlgyAzGVkJYM9Xn8yBOinGmRSD1aEE+kItFqaaKqwybQzRDudqRB7onLk8hFIiBlo3xhAyRueiKdmdd8GxBmNtWs8xAA */
   initial: "connecting",
   context: ({ input }) => ({
-    connectionString: input,
+    connectionString: input.connectionString,
+    id: input.id,
     socket: null,
     typeString: null,
     dialect: null,
@@ -262,6 +366,9 @@ const wsMachine = setup({
         DB_CONNECTED: "waitingForTypes",
       },
     },
+    stopped: {
+      type: "final",
+    },
   },
   on: {
     CONNECT: { actions: "disconnect", target: ".connecting" },
@@ -271,6 +378,10 @@ const wsMachine = setup({
         error: ({ event }) => event.data,
       }),
       target: ".disconnected",
+    },
+    STOP: {
+      actions: "disconnect",
+      target: ".stopped",
     },
   },
 });

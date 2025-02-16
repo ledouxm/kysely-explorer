@@ -3,7 +3,7 @@ import {
   connectionsActor,
   databasesToTsv,
   WsActor,
-} from "../features/connectionsMachine";
+} from "../features/ws/connectionsMachine";
 import { useSelector } from "@xstate/react";
 import { useEffect } from "react";
 import { Flex } from "#styled-system/jsx";

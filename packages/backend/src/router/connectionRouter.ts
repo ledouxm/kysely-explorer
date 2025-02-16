@@ -14,7 +14,15 @@ export const connectionRoutes = connectionRouter
     zValidator("json", z.object({ connectionString: z.string() })),
     async (c) => {
       const user = c.get("user")!;
-      return c.json({ user });
+      const { connectionString } = c.req.valid("json");
+
+      const connection = await db
+        .insertInto("connection")
+        .values({ user_id: user.id, connection_string: connectionString })
+        .returningAll()
+        .executeTakeFirst();
+
+      return c.json({ connection });
     },
   )
   .get("/get-connections", async (c) => {
@@ -27,6 +35,20 @@ export const connectionRoutes = connectionRouter
       .execute();
 
     return c.json({ connections });
-  });
+  })
+  .post(
+    "/remove-connection",
+    zValidator("json", z.object({ connectionId: z.number() })),
+    async (c) => {
+      const { connectionId } = c.req.valid("json");
+
+      await db
+        .deleteFrom("connection")
+        .where("id", "=", connectionId as any)
+        .execute();
+
+      return c.json({});
+    },
+  );
 
 export type ConnectionRoutes = typeof connectionRoutes;

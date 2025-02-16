@@ -6,7 +6,7 @@ export const loggedInMiddleware = async (
   next: Next,
 ) => {
   const user = c.get("user");
-  console.log(user);
+  console.log("request", c.req.method, c.req.url);
   if (!user) {
     return new Response("Not allowed", {
       status: 403,

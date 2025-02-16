@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Socket } from "socket.io-client";
-import { WsActor } from "./connectionsMachine";
+import { WsActor } from "./ws/connectionsMachine";
 
 export const useSocketEvent = (
   connection: WsActor | null,

@@ -1,11 +1,19 @@
 {
-    "workbench.colorCustomizations": {
-        "commandCenter.border": "#15202b99",
-        "sash.hoverBorder": "#6eb1d0",
-        "titleBar.activeBackground": "#489cc3",
-        "titleBar.activeForeground": "#15202b",
-        "titleBar.inactiveBackground": "#489cc399",
-        "titleBar.inactiveForeground": "#15202b99"
-    },
-    "peacock.color": "#489cc3"
+  "workbench.colorCustomizations": {
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#6eb1d0",
+    "titleBar.activeBackground": "#489cc3",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#489cc399",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#489cc3",
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "database": "${workspaceFolder:kysely-explorer}/auth.db",
+      "name": "aaaaaa"
+    }
+  ]
 }
