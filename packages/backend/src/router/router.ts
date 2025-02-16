@@ -9,6 +9,7 @@ import { z } from "zod";
 import { publicRouter } from "./publicRouter";
 import { ref } from "../hmr";
 import { connectionRouter } from "./connectionRouter";
+import { fileRouter } from "./fileRouter";
 
 export const makeRouter = () => {
   const router = new Hono<GlobalHonoConfig>();
@@ -47,6 +48,7 @@ export const makeRouter = () => {
 
   router.route("/api", publicRouter);
   router.route("/api", connectionRouter);
+  router.route("/api", fileRouter);
   // router.route("/api/connection")
 
   ref.router = serve(

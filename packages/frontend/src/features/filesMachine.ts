@@ -14,6 +14,7 @@ import {
   FileType,
   getInitialFileContent,
 } from "./fileStore";
+import { api } from "../api";
 
 const filesMachine = setup({
   types: {
@@ -29,8 +30,8 @@ const filesMachine = setup({
   actions: {},
   actors: {
     loadFilesAndSelect: fromPromise(async () => {
-      const files = await getFileNames();
-      return files;
+      const files = await api["get-files"].$get();
+      return files.json();
     }),
   },
 }).createMachine({
@@ -48,7 +49,9 @@ const filesMachine = setup({
           target: "idle",
           actions: assign(({ context, event, spawn }) => {
             const initialFiles =
-              event.output?.length > 0 ? event.output : ["unnamed-1.ts"];
+              event.output.files?.length > 0
+                ? event.output.files
+                : ["unnamed-1.ts"];
 
             const files = initialFiles.map((fileName) => {
               const splitted = fileName.split(".");
@@ -169,7 +172,9 @@ const fileMachine = setup({
       }: {
         input: { fileName: string; fileType: FileType };
       }) => {
-        const existingFileContent = await getFileContent(input.fileName);
+        const existingFileContent = await api["get-file"].$get({
+          query: { fileName: input.fileName },
+        });
         console.log("existingFileContent", existingFileContent);
         if (existingFileContent !== null && existingFileContent !== undefined) {
           return existingFileContent;
@@ -178,7 +183,9 @@ const fileMachine = setup({
         console.log(input.fileType);
         const initialContent = getInitialFileContent(input.fileType);
 
-        await saveFile(input.fileName, initialContent);
+        await api["update-file"].$post({
+          json: { fileName: input.fileName, content: initialContent },
+        });
         return initialContent;
       },
     ),
@@ -198,20 +205,27 @@ const fileMachine = setup({
 
         console.log("rename", input.fileName, input.targetFileName);
 
-        await saveFile(input.targetFileName, input.content);
-        await deleteFile(input.fileName);
+        await api["update-file"].$post({
+          json: {
+            fileName: input.fileName,
+            targetFileName: input.targetFileName,
+            content: input.content,
+          },
+        });
 
         return input.targetFileName;
       },
     ),
     deleteFile: fromPromise(
       async ({ input }: { input: { fileName: string } }) => {
-        await deleteFile(input.fileName);
+        await api["remove-file"].$post({ json: { fileName: input.fileName } });
       },
     ),
     saveFile: fromPromise(
       async ({ input }: { input: { fileName: string; content: string } }) => {
-        await saveFile(input.fileName, input.content!);
+        await api["update-file"].$post({
+          json: { fileName: input.fileName, content: input.content },
+        });
       },
     ),
   },
@@ -245,7 +259,7 @@ const fileMachine = setup({
         onDone: {
           target: "loaded",
           actions: assign({
-            content: ({ event }) => event.output,
+            content: ({ event }) => event.output.toString(),
           }),
         },
         onError: {

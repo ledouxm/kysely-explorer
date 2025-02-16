@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db";
 import { ConnectionRoutes } from "./connectionRouter";
+import { FileRoutes } from "./fileRouter";
 
 export const publicRouter = new Hono();
 
@@ -14,4 +15,4 @@ const routes = publicRouter.get("/is-first-connection", async (c) => {
 });
 
 export type PublicRoutes = typeof routes;
-export type AppRouter = PublicRoutes | ConnectionRoutes;
+export type AppRouter = PublicRoutes | ConnectionRoutes | FileRoutes;

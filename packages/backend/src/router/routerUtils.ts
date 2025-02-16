@@ -1,7 +1,10 @@
 import { Context, Next } from "hono";
 import { GlobalHonoConfig } from "../auth";
+import fs from "fs/promises";
+import path from "path";
+import { filesDirectory } from "./fileRouter";
 
-export const loggedInMiddleware = async (
+export const assertUserMiddleware = async (
   c: Context<GlobalHonoConfig>,
   next: Next,
 ) => {
@@ -13,5 +16,14 @@ export const loggedInMiddleware = async (
       statusText: "NOT_ALLOWED",
     });
   }
+  return next();
+};
+
+export const userDirExistsMiddleware = async (
+  c: Context<GlobalHonoConfig>,
+  next: Next,
+) => {
+  const user = c.get("user")!;
+  await fs.mkdir(path.join(filesDirectory, user.id), { recursive: true });
   return next();
 };

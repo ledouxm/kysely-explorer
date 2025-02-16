@@ -2,11 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 import { GlobalHonoConfig } from "../auth";
-import { loggedInMiddleware } from "./routerUtils";
+import { assertUserMiddleware } from "./routerUtils";
 import { db } from "../db";
 
 export const connectionRouter = new Hono<GlobalHonoConfig>();
-connectionRouter.use("*", loggedInMiddleware);
+connectionRouter.use("*", assertUserMiddleware);
 
 export const connectionRoutes = connectionRouter
   .post(
