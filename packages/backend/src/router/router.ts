@@ -6,9 +6,10 @@ import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { publicRouter } from "./publicRouter";
 import { ref } from "../hmr";
-import { connectionRouter } from "./connectionRouter";
+import { connectionRouter, connectionRoutes } from "./connectionRouter";
+import { createMiddleware, createRouter, Endpoint, Router } from "better-call";
+import { publicRouter, publicRoutes } from "./publicRouter";
 
 export const makeRouter = () => {
   const router = new Hono<GlobalHonoConfig>();
@@ -30,6 +31,7 @@ export const makeRouter = () => {
   );
 
   router.use("*", async (c, next) => {
+    console.log(c.req.method, c.req.url);
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
     if (!session) {
@@ -43,11 +45,13 @@ export const makeRouter = () => {
     return next();
   });
 
-  router.on(["GET", "POST"], "/api/auth/**", (c) => auth.handler(c.req.raw));
-
-  router.route("/api", publicRouter);
-  router.route("/api", connectionRouter);
-  // router.route("/api/connection")
+  router.on(["GET", "POST"], "/api/private/*", (c) =>
+    privateRouter.handler(c.req.raw),
+  );
+  router.on(["GET", "POST"], "/api/public/*", (c) =>
+    publicRouter.handler(c.req.raw),
+  );
+  router.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
   ref.router = serve(
     {
@@ -58,3 +62,43 @@ export const makeRouter = () => {
       console.log(`Hono listening on ${address.address}:${address.port}`),
   );
 };
+
+const loggedInMiddleware = createMiddleware(async (ctx) => {
+  return {
+    hello: true,
+  };
+});
+
+const privateRouter = createRouter(
+  {
+    ...connectionRouter.endpoints,
+    // ...userRouter.endpoints,
+  },
+  {
+    basePath: "/api/private/",
+    routerMiddleware: [
+      { path: "/api/private/**", middleware: loggedInMiddleware },
+    ],
+  },
+);
+
+export type ApiRouter = WithPrefixedPath<typeof connectionRouter, "/private"> &
+  WithPrefixedPath<typeof publicRouter, "/public">;
+
+type WithPrefixedPath<T extends Router, Prefix extends string> = Omit<
+  T,
+  "endpoints"
+> & {
+  endpoints: {
+    [K in keyof T["endpoints"]]: T["endpoints"][K] extends Endpoint<
+      infer Path,
+      infer Options
+    >
+      ? Endpoint<`${Prefix}${Path}`, Options>
+      : never;
+  };
+};
+
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};

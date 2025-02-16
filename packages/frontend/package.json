@@ -21,6 +21,7 @@
     "@trpc/client": "11.0.0-rc.761",
     "@xstate/react": "^5.0.2",
     "better-auth": "^1.1.18",
+    "better-call": "^1.0.0",
     "hono": "^4.7.1",
     "idb-keyval": "^6.2.1",
     "jotai": "^2.12.0",
