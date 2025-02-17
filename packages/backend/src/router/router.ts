@@ -7,9 +7,9 @@ import { cors } from "hono/cors";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { ref } from "../hmr";
-import { connectionRouter, connectionRoutes } from "./connectionRouter";
+import { connectionRouter } from "./connectionRouter";
 import { createMiddleware, createRouter, Endpoint, Router } from "better-call";
-import { publicRouter, publicRoutes } from "./publicRouter";
+import { publicRouter } from "./publicRouter";
 
 export const makeRouter = () => {
   const router = new Hono<GlobalHonoConfig>();
@@ -45,12 +45,8 @@ export const makeRouter = () => {
     return next();
   });
 
-  router.on(["GET", "POST"], "/api/private/*", (c) =>
-    privateRouter.handler(c.req.raw),
-  );
-  router.on(["GET", "POST"], "/api/public/*", (c) =>
-    publicRouter.handler(c.req.raw),
-  );
+  router.on(["GET", "POST"], "/api/*", (c) => appRouter.handler(c.req.raw));
+
   router.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
   ref.router = serve(
@@ -63,42 +59,16 @@ export const makeRouter = () => {
   );
 };
 
-const loggedInMiddleware = createMiddleware(async (ctx) => {
-  return {
-    hello: true,
-  };
-});
-
-const privateRouter = createRouter(
+const appRouter = createRouter(
   {
-    ...connectionRouter.endpoints,
-    // ...userRouter.endpoints,
+    ...publicRouter,
+    ...connectionRouter,
   },
   {
-    basePath: "/api/private/",
-    routerMiddleware: [
-      { path: "/api/private/**", middleware: loggedInMiddleware },
-    ],
+    basePath: "/api",
   },
 );
 
-export type ApiRouter = WithPrefixedPath<typeof connectionRouter, "/private"> &
-  WithPrefixedPath<typeof publicRouter, "/public">;
+console.log(appRouter);
 
-type WithPrefixedPath<T extends Router, Prefix extends string> = Omit<
-  T,
-  "endpoints"
-> & {
-  endpoints: {
-    [K in keyof T["endpoints"]]: T["endpoints"][K] extends Endpoint<
-      infer Path,
-      infer Options
-    >
-      ? Endpoint<`${Prefix}${Path}`, Options>
-      : never;
-  };
-};
-
-type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
+export type ApiRouter = typeof appRouter;

@@ -1,26 +1,43 @@
 import { Hono } from "hono";
 import { db } from "../db";
-import { createEndpoint, createRouter } from "better-call";
+import {
+  createEndpoint,
+  createMiddleware,
+  createRouter,
+  Endpoint,
+  EndpointContext,
+  EndpointOptions,
+  InferUse,
+  Middleware,
+  Prettify,
+} from "better-call";
+import {
+  createEndpointWithContext,
+  createIntermediateRouter,
+} from "./routerUtils";
+import { z } from "zod";
+import { createPublicEndpoint } from "./middlewares";
 
 // export const publicRouter = new Hono();
 
-const isFirstConnection = createEndpoint(
-  "/public/is-first-connection",
+const middleMiddleware = createMiddleware(async (ctx) => {
+  console.log("middle");
+  return { middle: "set" };
+});
+
+const isFirstConnection = createPublicEndpoint(
+  "/is-first-connection",
   {
     method: "GET",
-    use: [],
+    use: [middleMiddleware],
   },
   async (ctx) => {
-    const hasUsers = await db
-      .selectFrom("user")
-      .select(({ fn }) => [fn.count("id").as("count")])
-      .executeTakeFirst();
-
-    return {
-      isFirstConnection: hasUsers!.count === 0,
-    };
+    return ctx.context;
   },
 );
 
-export const publicRouter = createRouter({ isFirstConnection });
+export const publicRouter = createIntermediateRouter({
+  isFirstConnection,
+});
+
 // export type AppRouter = PublicRoutes | ConnectionRoutes;

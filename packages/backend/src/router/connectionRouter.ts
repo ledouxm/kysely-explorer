@@ -2,14 +2,18 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 import { GlobalHonoConfig } from "../auth";
-import { loggedInMiddleware } from "./routerUtils";
+import { createIntermediateRouter, loggedInMiddleware } from "./routerUtils";
 import { db } from "../db";
 import { createEndpoint, createRouter } from "better-call";
+import { createPrivateEndpoint } from "./middlewares";
 
-const getConnections = createEndpoint(
+const getConnections = createPrivateEndpoint(
   "/get-connections",
   {
     method: "GET",
+    query: z.object({
+      name: z.string(),
+    }),
     use: [],
   },
   async (ctx) => {
@@ -18,7 +22,8 @@ const getConnections = createEndpoint(
     };
   },
 );
-const createConnections = createEndpoint(
+
+const createConnections = createPrivateEndpoint(
   "/create-connections",
   {
     method: "POST",
@@ -31,7 +36,7 @@ const createConnections = createEndpoint(
   },
 );
 
-export const connectionRouter = createRouter({
+export const connectionRouter = createIntermediateRouter({
   getConnections,
   createConnections,
 });

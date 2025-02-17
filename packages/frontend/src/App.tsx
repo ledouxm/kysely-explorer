@@ -10,24 +10,28 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 
 function App() {
-  const query = useQuery({
-    queryKey: ["test"],
-    queryFn: async () => {
-      const payload = await api("/private/get-connections", {});
-      return payload;
-    },
-  });
+  // const query = useQuery({
+  //   queryKey: ["test"],
+  //   queryFn: async () => {
+  //     const payload = await api("/get-connections", {
+  //       query: {
+  //         name: "test",
+  //       },
+  //     });
+  //     return payload;
+  //   },
+  // });
   const query2 = useQuery({
     queryKey: ["test2"],
     queryFn: async () => {
-      const payload = await api("/public/is-first-connection", {});
+      const payload = await api("/is-first-connection", {});
       return payload;
     },
   });
 
   // authClient.
 
-  console.log(1, query.status, query.data);
+  // console.log(1, query.status, query.data);
   console.log(2, query2.status, query2.data);
   return null;
   return (
