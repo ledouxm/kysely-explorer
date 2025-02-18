@@ -31,10 +31,3 @@ export const auth = betterAuth({
     },
   ],
 });
-
-export type GlobalHonoConfig = {
-  Variables: {
-    user: typeof auth.$Infer.Session.user | null;
-    session: typeof auth.$Infer.Session.session | null;
-  };
-};

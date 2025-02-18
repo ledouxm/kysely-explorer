@@ -1,4 +1,9 @@
-import { createLoggedInEndpoint, filesDirectory } from "./routerUtils";
+import { APIError } from "better-call";
+import {
+  createLoggedInEndpoint,
+  filesDirectory,
+  safelyResolveUserDirPath,
+} from "./routerUtils";
 import fs from "fs/promises";
 import { z } from "zod";
 
@@ -6,8 +11,8 @@ const getFiles = createLoggedInEndpoint(
   "/get-files",
   { method: "GET" },
   async (c) => {
-    const user = c.context.user!;
-    const files = await fs.readdir(`${filesDirectory}/${user.id}`);
+    const user = c.context.user;
+    const files = await fs.readdir(safelyResolveUserDirPath(user.id, ""));
     return { files };
   },
 );
@@ -16,12 +21,14 @@ const getFile = createLoggedInEndpoint(
   "/get-file",
   { method: "GET", query: z.object({ fileName: z.string() }) },
   async (c) => {
-    const user = c.context.user!;
+    const user = c.context.user;
     const { fileName } = c.query;
-    const file = await fs.readFile(
-      `${filesDirectory}/${user.id}/${fileName}`,
-      "utf-8",
-    );
+
+    const path = safelyResolveUserDirPath(user.id, fileName);
+    const file = await fs.readFile(path, "utf-8").catch(() => {
+      throw new APIError("NOT_FOUND");
+    });
+
     return file;
   },
 );
@@ -35,7 +42,10 @@ const createFile = createLoggedInEndpoint(
   async (c) => {
     const user = c.context.user!;
     const { fileName, content } = c.body;
-    await fs.writeFile(`${filesDirectory}/${user.id}/${fileName}`, content);
+
+    const path = safelyResolveUserDirPath(user.id, fileName);
+    await fs.writeFile(path, content);
+
     return { fileName, content };
   },
 );
@@ -44,14 +54,17 @@ const removeFile = createLoggedInEndpoint(
   "/remove-file",
   { method: "POST", body: z.object({ fileName: z.string() }) },
   async (c) => {
-    const user = c.context.user!;
+    const user = c.context.user;
     const { fileName } = c.body;
-    await fs.unlink(`${filesDirectory}/${user.id}/${fileName}`);
+
+    const path = safelyResolveUserDirPath(user.id, fileName);
+
+    await fs.unlink(path);
     return {};
   },
 );
 
-const updateFIle = createLoggedInEndpoint(
+const updateFile = createLoggedInEndpoint(
   "/update-file",
   {
     method: "POST",
@@ -64,12 +77,17 @@ const updateFIle = createLoggedInEndpoint(
   async (c) => {
     const user = c.context.user!;
     const { fileName, targetFileName, content } = c.body;
-    await fs.writeFile(
-      `${filesDirectory}/${user.id}/${targetFileName ?? fileName}`,
-      content,
+
+    const newFilePath = safelyResolveUserDirPath(
+      user.id,
+      targetFileName ?? fileName,
     );
-    if (fileName !== targetFileName) {
-      await fs.unlink(`${filesDirectory}/${user.id}/${fileName}`);
+
+    await fs.writeFile(newFilePath, content);
+
+    if (targetFileName && fileName !== targetFileName) {
+      const oldFilePath = safelyResolveUserDirPath(user.id, fileName);
+      await fs.unlink(oldFilePath);
     }
     return { fileName: targetFileName ?? fileName, content };
   },
@@ -80,5 +98,5 @@ export const fileRoutes = {
   getFile,
   createFile,
   removeFile,
-  updateFIle,
+  updateFile,
 };

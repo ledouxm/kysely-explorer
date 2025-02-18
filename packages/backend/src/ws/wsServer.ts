@@ -31,12 +31,10 @@ export const startWsServer = () => {
     });
 
     socket.on("message", async (event: any, ...args: any[]) => {
-      console.log("message", event);
       if (event === "execute-ts") {
         const [code] = args;
         try {
           const result = await executeTs({ code, db: socket.db });
-          console.log("result", result);
           socket.emit("ts-result", result);
         } catch (e: any) {
           console.error(e);
@@ -50,14 +48,12 @@ export const startWsServer = () => {
       if (event === "execute-sql") {
         const [code] = args;
         try {
-          console.log(code);
           // @ts-ignore
           const result = await socket.db?.executeQuery({
             sql: code,
             parameters: [] as any[],
           });
 
-          console.log("result", result);
           socket.emit("sql-result", result.rows);
         } catch (e: any) {
           console.error(e);

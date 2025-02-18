@@ -10,6 +10,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@fastify/cors':
+        specifier: ^10.0.2
+        version: 10.0.2
       '@hono/node-server':
         specifier: ^1.13.8
         version: 1.13.8(hono@4.7.1)
@@ -142,7 +145,7 @@ importers:
         version: 1.1.18
       better-call:
         specifier: link:C://Users//mledo//dev//better-call
-        version: 1.0.0
+        version: link:../../../better-call
       hono:
         specifier: ^4.7.1
         version: 4.7.1
@@ -1925,6 +1928,13 @@ packages:
       ajv: 8.17.1
       ajv-formats: 3.0.1(ajv@8.17.1)
       fast-uri: 3.0.6
+    dev: false
+
+  /@fastify/cors@10.0.2:
+    resolution: {integrity: sha512-DGdxOG36sS/tZv1NFiCJGi7wGuXOSPL2CmNX5PbOVKx0C6LuIALRMrqLByHTCcX1Rbl8NJ9IWlJex32bzydvlw==}
+    dependencies:
+      fastify-plugin: 5.0.1
+      mnemonist: 0.39.8
     dev: false
 
   /@fastify/error@4.0.0:
@@ -3841,15 +3851,6 @@ packages:
       uncrypto: 0.1.3
       zod: 3.24.2
 
-  /better-call@1.0.0:
-    resolution: {integrity: sha512-3+q6AQENjZQRuY/gi1gx/Ufd3oTASutrS2KK+S4uxbeCh44JYFS9sZvyW+/QVTl3xIuSwfdjCUo3dFK6+4ChEA==}
-    dependencies:
-      '@better-fetch/fetch': 1.1.13
-      rou3: 0.5.1
-      set-cookie-parser: 2.7.1
-      uncrypto: 0.1.3
-    dev: false
-
   /better-sqlite3@11.8.1:
     resolution: {integrity: sha512-9BxNaBkblMjhJW8sMRZxnxVTRgbRmssZW0Oxc1MPBTfiR+WW21e2Mk4qu8CzrcZb1LwPCnFsfDEzq+SNcBU8eg==}
     requiresBuild: true
@@ -4772,6 +4773,10 @@ packages:
 
   /fast-uri@3.0.6:
     resolution: {integrity: sha512-Atfo14OibSv5wAp4VWNsFYE1AchQRTv9cBGWET4pZWHzYshFSS9NQI6I57rdKn9croWVMbYFbLhJ+yJvmZIIHw==}
+
+  /fastify-plugin@5.0.1:
+    resolution: {integrity: sha512-HCxs+YnRaWzCl+cWRYFnHmeRFyR5GVnJTAaCJQiYzQSDwK9MgJdyAsuL3nh0EWRCYMgQ5MeziymvmAhUHYHDUQ==}
+    dev: false
 
   /fastify@5.2.1:
     resolution: {integrity: sha512-rslrNBF67eg8/Gyn7P2URV8/6pz8kSAscFL4EThZJ8JBMaXacVdVE4hmUcnPNKERl5o/xTiBSLfdowBRhVF1WA==}
@@ -5711,6 +5716,12 @@ packages:
       ufo: 1.5.4
     dev: true
 
+  /mnemonist@0.39.8:
+    resolution: {integrity: sha512-vyWo2K3fjrUw8YeeZ1zF0fy6Mu59RHokURlld8ymdUPjMlD9EC9ov1/YPqTgqRvUN9nTr3Gqfz29LYAmu0PHPQ==}
+    dependencies:
+      obliterator: 2.0.5
+    dev: false
+
   /monaco-editor@0.52.2:
     resolution: {integrity: sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==}
     dev: false
@@ -5849,6 +5860,10 @@ packages:
     resolution: {integrity: sha512-YJjNZrlXJFM42wTBn6zgOJVar9KFJvzx6sTWDte8sWZF//cnjl0BxHNpfZx+ZffXX63A9q0b1zsFiBX4g4X5KA==}
     engines: {node: '>= 10.12.0'}
     dev: true
+
+  /obliterator@2.0.5:
+    resolution: {integrity: sha512-42CPE9AhahZRsMNslczq0ctAEtqk8Eka26QofnqC346BZdHDySk3LWka23LI7ULIw11NmltpiLagIq8gBozxTw==}
+    dev: false
 
   /ofetch@1.4.1:
     resolution: {integrity: sha512-QZj2DfGplQAr2oj9KzceK9Hwz6Whxazmn85yYeVuS3u9XTMOGMRx0kO95MQ+vLsj/S/NwBDMMLU5hpxvI6Tklw==}

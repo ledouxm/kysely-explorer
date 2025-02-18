@@ -1,20 +1,11 @@
-import Editor, {
-  DiffEditor,
-  useMonaco,
-  loader,
-  Monaco,
-  EditorProps,
-} from "@monaco-editor/react";
-import * as M from "monaco-editor";
-import { queryOptions, useQueries } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { styled } from "#styled-system/jsx";
 import { css } from "#styled-system/css";
-import { MultiSplitPane } from "./MultiSplitPane";
+import { Monaco, useMonaco } from "@monaco-editor/react";
+import { queryOptions, useQueries } from "@tanstack/react-query";
+import { useEffect } from "react";
 import Split from "react-split";
 import { DbConnections } from "../features/ws/DbConnections";
-import { editorOptions, TypeEditor } from "./TypeEditor";
 import { CodeEditor } from "./CodeEditor";
+import { TypeEditor } from "./TypeEditor";
 
 export const MainEditor = () => {
   const monaco = useMonaco();

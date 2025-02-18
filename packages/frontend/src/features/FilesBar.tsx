@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from "../components/ui/popover";
 import { Input } from "../components/Input";
-import { ComponentProps, ReactNode, useState } from "react";
+import { ComponentProps, ReactNode, useEffect, useState } from "react";
 import { setup } from "xstate";
 import { FileSelector } from "./FileSelector";
 import { useForm } from "react-hook-form";
@@ -34,6 +34,10 @@ import { css } from "#styled-system/css";
 
 export const FilesBar = ({ executeTs }: { executeTs: () => void }) => {
   const files = useSelector(filesActor, (state) => state.context.files);
+
+  useEffect(() => {
+    filesActor.send({ type: "LOAD_FILES" });
+  }, []);
 
   return (
     <Flex bgColor="background-secondary" alignItems="center" h="100%">

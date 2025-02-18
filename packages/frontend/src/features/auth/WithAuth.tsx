@@ -10,7 +10,6 @@ import { api } from "../../api";
 
 export const WithAuth = ({ children }: { children: ReactNode }) => {
   const session = authClient.useSession();
-  console.log(session);
 
   if (session.isPending) {
     return <div>Loading...</div>;
@@ -90,12 +89,9 @@ const LoginOrSignupForm = ({
     },
   });
 
-  console.log(onSubmitMutation);
-
   return (
     <styled.form
       onSubmit={form.handleSubmit((data) => {
-        console.log(data);
         onSubmitMutation.mutate(data);
       })}
     >

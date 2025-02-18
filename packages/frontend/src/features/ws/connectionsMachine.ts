@@ -156,6 +156,7 @@ export const connectionsMachine = setup({
               const connection = spawn(wsMachine, {
                 input: { connectionString: connection_string, id: id as any },
               });
+              connection.send({ type: "CONNECT" });
               context.connections = [...context.connections, connection];
 
               if (!context.selected) {
@@ -182,19 +183,15 @@ export const connectionsMachine = setup({
           target: "idle",
           actions: assign(({ context, event }) => {
             const id = event.output as any;
-            console.log("removing", id);
             const connection = context.connections.find(
               (connection) => connection.getSnapshot().context.id === id,
             );
 
             connection?.send({ type: "DISCONNECT" });
 
-            console.log("before", context.connections);
-
             context.connections = context.connections.filter(
               (conn) => conn !== connection,
             );
-            console.log("after", context.connections);
 
             if (context.selected?.getSnapshot().context.id === id) {
               context.selected = null;
@@ -282,7 +279,6 @@ const wsMachine = setup({
       const socket = connectToWSS(context.connectionString);
 
       socket.on("connect", () => {
-        console.log("connected");
         self.send({ type: "DB_CONNECTED" });
       });
 
@@ -320,7 +316,7 @@ const wsMachine = setup({
   },
 }).createMachine({
   /** @xstate-layout N4IgpgJg5mDOIC5QAoC2BDAxgCwJYDswBKAYgGEB5AOSoFEyAVAbQAYBdRUABwHtZcALrh75OIAB6IALACYANCACeiGQFYWAOgBsAdgCcWgBw7VAX1MK0WPIVIARAJIBlSjXrN2Y3vyEixkhFkFZUDZDVVDVT0AZhNzSwwcAmISOwAhAH1aACVsimzWDiQQb0FhUWKAoKVEaKktbWiZQwBGNXiQKyTbDUwRQkwhfChUzNc6Rlo7Qq8+Mr9K2r0WjRNglT1VDSkWLXaLTsSbYg0Ad3Qy4YAxHgAnBkUuOFGMhyorihni0t8K0CqwiwWqo9qp1ghWuEOl1jkRev0wINICRsrQrrQGGQABIZBgATQACrQnF9uHNfv5apC1OCWjodNtVNE2mYDjDknCILhYH18AMBMj0hlxu4pqSSuTypSENFlqswTUZZFtCwYnEOvgeBA4GJ2bZZj4pYsEABaLTgs3Qo4c+F8xFDKAG+Z-CQqFhSDR6XY0xVqTQ7UFW6w286XKA3e6PHXfSULf6IVQ6Qzbb0KkIyFjJlgyAzGVkJYM9Xn8yBOinGmRSD1aEE+kItFqaaKqwybQzRDudqRB7onLk8hFIiBlo3xhAyRueiKdmdd8GxBmNtWs8xAA */
-  initial: "connecting",
+  initial: "disconnected",
   context: ({ input }) => ({
     connectionString: input.connectionString,
     id: input.id,

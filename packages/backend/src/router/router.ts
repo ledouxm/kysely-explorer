@@ -1,9 +1,8 @@
 import { Hono } from "hono";
-import { auth, GlobalHonoConfig } from "../auth";
+import { auth } from "../auth";
 
 import { serve } from "@hono/node-server";
-import { createRouter, generator, Prettify } from "better-call";
-import fs from "fs/promises";
+import { createRouter } from "better-call";
 import { cors } from "hono/cors";
 import { ref } from "../hmr";
 import { connectionRoutes } from "./connectionRouter";
@@ -11,7 +10,7 @@ import { fileRoutes } from "./fileRouter";
 import { publicRoutes } from "./publicRouter";
 
 export const makeRouter = () => {
-  const router = new Hono<GlobalHonoConfig>();
+  const router = new Hono();
   router.use(
     cors({
       origin: "http://localhost:5173",
@@ -22,6 +21,7 @@ export const makeRouter = () => {
         "X-Requested-With",
         "Accept",
         "Origin",
+        "X-Root-Token",
       ],
       allowMethods: ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
       exposeHeaders: ["Content-Length", "Content-Type"],
@@ -29,10 +29,13 @@ export const makeRouter = () => {
     }),
   );
 
+  // router.use("*", async (c, next) => {
+  //   const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  //   return next();
+  // });
+
   router.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
   router.on(["GET", "POST"], "/api/*", (c) => appRouter.handler(c.req.raw));
-
-  // router.route("/api/connection")
 
   ref.router = serve(
     {
@@ -58,7 +61,4 @@ const appRouter = createRouter(
   },
 );
 
-const openApi = await generator(appRouter.endpoints);
-await fs.writeFile("openapi.json", JSON.stringify(openApi, null, 2));
-
-export type AppRouter = Prettify<typeof appRouter>;
+export type AppRouter = typeof appRouter;

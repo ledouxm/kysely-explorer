@@ -28,4 +28,5 @@ export const cleanup = () => {
 export const api = createClient<AppRouter>({
   baseURL: "http://localhost:3005/api",
   throw: true,
+  credentials: "include",
 });

@@ -6,14 +6,7 @@ import {
   fromPromise,
   setup,
 } from "xstate";
-import {
-  getFileNames,
-  getFileContent,
-  saveFile,
-  deleteFile,
-  FileType,
-  getInitialFileContent,
-} from "./fileStore";
+import { FileType, getInitialFileContent } from "./fileStore";
 import { api } from "../api";
 
 const filesMachine = setup({
@@ -25,7 +18,8 @@ const filesMachine = setup({
     events: {} as
       | { type: "SELECT_FILE"; fileName: string }
       | { type: "CREATE_FILE"; fileName?: string; fileType: FileType }
-      | { type: "DELETED"; id: string },
+      | { type: "DELETED"; id: string }
+      | { type: "LOAD_FILES" },
   },
   actions: {},
   actors: {
@@ -39,8 +33,15 @@ const filesMachine = setup({
     files: [],
     selected: null,
   },
-  initial: "loadingFiles",
+  initial: "started",
   states: {
+    started: {
+      on: {
+        LOAD_FILES: {
+          target: "loadingFiles",
+        },
+      },
+    },
     loadingFiles: {
       invoke: {
         src: "loadFilesAndSelect",
@@ -171,20 +172,20 @@ const fileMachine = setup({
       }: {
         input: { fileName: string; fileType: FileType };
       }) => {
-        const existingFileContent = await api("/get-file", {
-          query: { fileName: input.fileName },
-        });
+        try {
+          const existingFileContent = await api("/get-file", {
+            query: { fileName: input.fileName },
+          });
 
-        if (existingFileContent !== null && existingFileContent !== undefined) {
           return existingFileContent;
+        } catch (e) {
+          const initialContent = getInitialFileContent(input.fileType);
+
+          await api("@post/create-file", {
+            body: { fileName: input.fileName, content: initialContent },
+          });
+          return initialContent;
         }
-
-        const initialContent = getInitialFileContent(input.fileType);
-
-        await api("@post/create-file", {
-          body: { fileName: input.fileName, content: initialContent },
-        });
-        return initialContent;
       },
     ),
     renameFile: fromPromise(
@@ -200,8 +201,6 @@ const fileMachine = setup({
           ? ""
           : `.${input.fileName.split(".").pop()}`;
         input.targetFileName += extension;
-
-        console.log("rename", input.fileName, input.targetFileName);
 
         await api("@post/update-file", {
           body: {

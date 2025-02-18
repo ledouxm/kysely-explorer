@@ -24,7 +24,6 @@ export const CodeEditor = () => {
   const [result, setResult] = useState<any>(null);
 
   useSocketEvent(connection, "ts-result", (data) => {
-    console.log(data);
     setResult(data);
   });
   useSocketEvent(connection, "ts-error", (data) => {
@@ -32,7 +31,6 @@ export const CodeEditor = () => {
   });
 
   useSocketEvent(connection, "sql-result", (data) => {
-    console.log(data);
     setResult(data);
   });
   useSocketEvent(connection, "sql-error", (data) => {
@@ -57,7 +55,6 @@ export const CodeEditor = () => {
     },
   });
 
-  console.log("selectedFile", selectedFile);
   return (
     <Split direction="vertical" sizes={[60, 40]}>
       {/* <Flex direction="column" h="100%"> */}
@@ -105,7 +102,6 @@ export const CodeEditor = () => {
               label: "New file",
               keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
               run: (ed) => {
-                console.log("new file", selectedFile);
                 filesActor
                   .getSnapshot()
                   .context.selected?.send({ type: "SAVE" });
