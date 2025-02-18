@@ -80,22 +80,18 @@ export const connectionsMachine = setup({
   },
   actors: {
     getConnections: fromPromise(async () => {
-      const resp = await api["get-connections"].$get().then((r) => r.json());
-      return resp;
+      return api("/get-connections", {});
     }),
     addConnection: fromPromise(
       async ({ input }: { input: { connectionString: string } }) => {
-        const resp = await api["create-connection"]
-          .$post({ json: input })
-          .then((r) => r.json());
-        return resp;
+        return api("@post/create-connection", { body: input });
       },
     ),
     removeConnection: fromPromise(
       async ({ input }: { input: { id: number } }) => {
-        await api["remove-connection"]
-          .$post({ json: { connectionId: input.id } })
-          .then((r) => r.json());
+        await api("@post/remove-connection", {
+          body: { connectionId: input.id },
+        });
         return input.id;
       },
     ),

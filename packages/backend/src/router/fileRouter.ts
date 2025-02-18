@@ -1,109 +1,84 @@
-import { Hono } from "hono";
-import { GlobalHonoConfig } from "../auth";
-import { assertUserMiddleware, userDirExistsMiddleware } from "./routerUtils";
+import { createLoggedInEndpoint, filesDirectory } from "./routerUtils";
 import fs from "fs/promises";
-import { ENV } from "../envVar";
-import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-export const fileRouter = new Hono<GlobalHonoConfig>();
-export const filesDirectory = ENV.USER_FILES_DIRECTORY;
-
-fileRouter.use("*", assertUserMiddleware, userDirExistsMiddleware);
-
-const routes = fileRouter
-  .get("/get-files", async (c) => {
-    const user = c.get("user")!;
+const getFiles = createLoggedInEndpoint(
+  "/get-files",
+  { method: "GET" },
+  async (c) => {
+    const user = c.context.user!;
     const files = await fs.readdir(`${filesDirectory}/${user.id}`);
-    console.log(files);
-    return c.json({ files });
-  })
-  .get(
-    "/get-file",
-    zValidator(
-      "query",
-      z.object({
-        fileName: z.string(),
-      }),
-    ),
-    async (c) => {
-      const user = c.get("user")!;
-      const { fileName } = c.req.valid("query");
+    return { files };
+  },
+);
 
-      const file = await fs.readFile(
-        `${filesDirectory}/${user.id}/${fileName}`,
-        "utf-8",
-      );
+const getFile = createLoggedInEndpoint(
+  "/get-file",
+  { method: "GET", query: z.object({ fileName: z.string() }) },
+  async (c) => {
+    const user = c.context.user!;
+    const { fileName } = c.query;
+    const file = await fs.readFile(
+      `${filesDirectory}/${user.id}/${fileName}`,
+      "utf-8",
+    );
+    return file;
+  },
+);
 
-      return c.text(file);
-    },
-  )
-  .post(
-    "/create-file",
-    zValidator(
-      "json",
-      z.object({
-        fileName: z.string(),
-        content: z.string(),
-      }),
-    ),
-    async (c) => {
-      const user = c.get("user")!;
-      const { fileName, content } = c.req.valid("json");
+const createFile = createLoggedInEndpoint(
+  "/create-file",
+  {
+    method: "POST",
+    body: z.object({ fileName: z.string(), content: z.string() }),
+  },
+  async (c) => {
+    const user = c.context.user!;
+    const { fileName, content } = c.body;
+    await fs.writeFile(`${filesDirectory}/${user.id}/${fileName}`, content);
+    return { fileName, content };
+  },
+);
 
-      await fs.writeFile(`${filesDirectory}/${user.id}/${fileName}`, content);
+const removeFile = createLoggedInEndpoint(
+  "/remove-file",
+  { method: "POST", body: z.object({ fileName: z.string() }) },
+  async (c) => {
+    const user = c.context.user!;
+    const { fileName } = c.body;
+    await fs.unlink(`${filesDirectory}/${user.id}/${fileName}`);
+    return {};
+  },
+);
 
-      return c.json({
-        fileName,
-        content,
-      });
-    },
-  )
-  .post(
-    "/remove-file",
-    zValidator(
-      "json",
-      z.object({
-        fileName: z.string(),
-      }),
-    ),
-    async (c) => {
-      const user = c.get("user")!;
-      const { fileName } = c.req.valid("json");
-
+const updateFIle = createLoggedInEndpoint(
+  "/update-file",
+  {
+    method: "POST",
+    body: z.object({
+      fileName: z.string(),
+      targetFileName: z.string().optional(),
+      content: z.string(),
+    }),
+  },
+  async (c) => {
+    const user = c.context.user!;
+    const { fileName, targetFileName, content } = c.body;
+    await fs.writeFile(
+      `${filesDirectory}/${user.id}/${targetFileName ?? fileName}`,
+      content,
+    );
+    if (fileName !== targetFileName) {
       await fs.unlink(`${filesDirectory}/${user.id}/${fileName}`);
+    }
+    return { fileName: targetFileName ?? fileName, content };
+  },
+);
 
-      return c.json({});
-    },
-  )
-  .post(
-    "/update-file",
-    zValidator(
-      "json",
-      z.object({
-        fileName: z.string(),
-        targetFileName: z.string().optional(),
-        content: z.string(),
-      }),
-    ),
-    async (c) => {
-      const user = c.get("user")!;
-      const { fileName, targetFileName, content } = c.req.valid("json");
-
-      await fs.writeFile(
-        `${filesDirectory}/${user.id}/${targetFileName ?? fileName}`,
-        content,
-      );
-
-      if (fileName !== targetFileName) {
-        await fs.unlink(`${filesDirectory}/${user.id}/${fileName}`);
-      }
-
-      return c.json({
-        fileName: targetFileName ?? fileName,
-        content,
-      });
-    },
-  );
-
-export type FileRoutes = typeof routes;
+export const fileRoutes = {
+  getFiles,
+  getFile,
+  createFile,
+  removeFile,
+  updateFIle,
+};

@@ -1,3 +1,5 @@
 node_modules
 .env
 user_files
+*.db
+trace-dir*

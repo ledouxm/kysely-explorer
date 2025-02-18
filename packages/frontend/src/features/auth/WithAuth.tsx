@@ -36,8 +36,7 @@ const FirstConnectionChecker = () => {
     queryKey: ["isFirstConnection"],
     gcTime: 0,
     queryFn: async () => {
-      const resp = await api["is-first-connection"].$get();
-      return (await resp.text()) === "true";
+      return api("/is-first-connection", {});
     },
   });
 

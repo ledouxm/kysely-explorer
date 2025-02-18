@@ -30,8 +30,7 @@ const filesMachine = setup({
   actions: {},
   actors: {
     loadFilesAndSelect: fromPromise(async () => {
-      const files = await api["get-files"].$get();
-      return files.json();
+      return api("/get-files", {});
     }),
   },
 }).createMachine({
@@ -172,19 +171,18 @@ const fileMachine = setup({
       }: {
         input: { fileName: string; fileType: FileType };
       }) => {
-        const existingFileContent = await api["get-file"].$get({
+        const existingFileContent = await api("/get-file", {
           query: { fileName: input.fileName },
         });
-        console.log("existingFileContent", existingFileContent);
+
         if (existingFileContent !== null && existingFileContent !== undefined) {
           return existingFileContent;
         }
 
-        console.log(input.fileType);
         const initialContent = getInitialFileContent(input.fileType);
 
-        await api["update-file"].$post({
-          json: { fileName: input.fileName, content: initialContent },
+        await api("@post/create-file", {
+          body: { fileName: input.fileName, content: initialContent },
         });
         return initialContent;
       },
@@ -205,8 +203,8 @@ const fileMachine = setup({
 
         console.log("rename", input.fileName, input.targetFileName);
 
-        await api["update-file"].$post({
-          json: {
+        await api("@post/update-file", {
+          body: {
             fileName: input.fileName,
             targetFileName: input.targetFileName,
             content: input.content,
@@ -218,13 +216,13 @@ const fileMachine = setup({
     ),
     deleteFile: fromPromise(
       async ({ input }: { input: { fileName: string } }) => {
-        await api["remove-file"].$post({ json: { fileName: input.fileName } });
+        await api("@post/remove-file", { body: { fileName: input.fileName } });
       },
     ),
     saveFile: fromPromise(
       async ({ input }: { input: { fileName: string; content: string } }) => {
-        await api["update-file"].$post({
-          json: { fileName: input.fileName, content: input.content },
+        await api("@post/update-file", {
+          body: { fileName: input.fileName, content: input.content },
         });
       },
     ),

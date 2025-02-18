@@ -1,15 +1,14 @@
 import { Hono } from "hono";
 import { auth, GlobalHonoConfig } from "../auth";
-import { toNodeHandler } from "better-auth/node";
 
 import { serve } from "@hono/node-server";
+import { createRouter, generator, Prettify } from "better-call";
+import fs from "fs/promises";
 import { cors } from "hono/cors";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
-import { publicRouter } from "./publicRouter";
 import { ref } from "../hmr";
-import { connectionRouter } from "./connectionRouter";
-import { fileRouter } from "./fileRouter";
+import { connectionRoutes } from "./connectionRouter";
+import { fileRoutes } from "./fileRouter";
+import { publicRoutes } from "./publicRouter";
 
 export const makeRouter = () => {
   const router = new Hono<GlobalHonoConfig>();
@@ -44,11 +43,9 @@ export const makeRouter = () => {
     return next();
   });
 
-  router.on(["GET", "POST"], "/api/auth/**", (c) => auth.handler(c.req.raw));
+  router.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+  router.on(["GET", "POST"], "/api/*", (c) => appRouter.handler(c.req.raw));
 
-  router.route("/api", publicRouter);
-  router.route("/api", connectionRouter);
-  router.route("/api", fileRouter);
   // router.route("/api/connection")
 
   ref.router = serve(
@@ -60,3 +57,22 @@ export const makeRouter = () => {
       console.log(`Hono listening on ${address.address}:${address.port}`),
   );
 };
+
+const appRouter = createRouter(
+  {
+    ...connectionRoutes,
+    ...publicRoutes,
+    ...fileRoutes,
+  },
+  {
+    basePath: "/api",
+    openAPI: {
+      path: "/api/openapi",
+    },
+  },
+);
+
+const openApi = await generator(appRouter.endpoints);
+await fs.writeFile("openapi.json", JSON.stringify(openApi, null, 2));
+
+export type AppRouter = Prettify<typeof appRouter>;

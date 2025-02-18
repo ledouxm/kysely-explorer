@@ -1,6 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { hc } from "hono/client";
-import { AppRouter } from "../../backend/src/router/publicRouter";
+import { AppRouter } from "../../backend/src/router/router";
+import { createClient } from "better-call/client";
 
 const sockets = new Map<string, Socket>();
 
@@ -24,6 +25,7 @@ export const cleanup = () => {
   }
 };
 
-export const api = hc<AppRouter>("http://localhost:3005/api", {
-  init: { credentials: "include", mode: "cors" },
+export const api = createClient<AppRouter>({
+  baseURL: "http://localhost:3005/api",
+  throw: true,
 });

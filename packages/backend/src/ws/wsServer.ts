@@ -1,11 +1,11 @@
-import { Kysely, sql } from "kysely";
+import { Kysely } from "kysely";
 import { createServer } from "node:http";
 
-import { Server, Socket } from "socket.io";
-import { connectAndGetDialect, getTypeString } from "./ws";
 import { DialectName } from "kysely-codegen";
+import { Server, Socket } from "socket.io";
+import { ref } from "../hmr";
 import { executeTs } from "./ts-executor";
-import { ref, registerViteHmrServerRestart } from "../hmr";
+import { connectAndGetDialect, getTypeString } from "./ws";
 
 export const startWsServer = () => {
   const httpServer = createServer();

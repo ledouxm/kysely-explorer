@@ -1,8 +1,9 @@
 import { Context, Next } from "hono";
-import { GlobalHonoConfig } from "../auth";
+import { auth, GlobalHonoConfig } from "../auth";
 import fs from "fs/promises";
 import path from "path";
-import { filesDirectory } from "./fileRouter";
+import { APIError, createEndpoint, createMiddleware } from "better-call";
+import { ENV } from "../envVar";
 
 export const assertUserMiddleware = async (
   c: Context<GlobalHonoConfig>,
@@ -27,3 +28,19 @@ export const userDirExistsMiddleware = async (
   await fs.mkdir(path.join(filesDirectory, user.id), { recursive: true });
   return next();
 };
+
+const loggedInMiddleware = createMiddleware(async (ctx) => {
+  if (!ctx.headers) throw new APIError("FORBIDDEN");
+  const session = await auth.api.getSession({ headers: ctx.headers });
+  if (!session) throw new APIError("FORBIDDEN");
+  return { user: session.user, session };
+});
+
+export const createLoggedInEndpoint = createEndpoint.create({
+  use: [loggedInMiddleware],
+});
+
+export const createPublicEnpoint = createEndpoint.create({
+  use: [],
+});
+export const filesDirectory = ENV.USER_FILES_DIRECTORY;

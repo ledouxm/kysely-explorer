@@ -1,32 +1,13 @@
-import { zValidator } from "@hono/zod-validator";
-import { Hono } from "hono";
 import { z } from "zod";
-import { GlobalHonoConfig } from "../auth";
-import { assertUserMiddleware } from "./routerUtils";
+import { createLoggedInEndpoint } from "./routerUtils";
 import { db } from "../db";
 
-export const connectionRouter = new Hono<GlobalHonoConfig>();
-connectionRouter.use("*", assertUserMiddleware);
+export const getConnections = createLoggedInEndpoint(
+  "/get-connections",
+  { method: "GET" },
+  async (c) => {
+    const user = c.context.user;
 
-export const connectionRoutes = connectionRouter
-  .post(
-    "/create-connection",
-    zValidator("json", z.object({ connectionString: z.string() })),
-    async (c) => {
-      const user = c.get("user")!;
-      const { connectionString } = c.req.valid("json");
-
-      const connection = await db
-        .insertInto("connection")
-        .values({ user_id: user.id, connection_string: connectionString })
-        .returningAll()
-        .executeTakeFirst();
-
-      return c.json({ connection });
-    },
-  )
-  .get("/get-connections", async (c) => {
-    const user = c.get("user")!;
     const connections = await db
       .selectFrom("connection")
       .where("user_id", "=", user.id)
@@ -34,21 +15,44 @@ export const connectionRoutes = connectionRouter
       .selectAll()
       .execute();
 
-    return c.json({ connections });
-  })
-  .post(
-    "/remove-connection",
-    zValidator("json", z.object({ connectionId: z.number() })),
-    async (c) => {
-      const { connectionId } = c.req.valid("json");
+    return { connections };
+  },
+);
 
-      await db
-        .deleteFrom("connection")
-        .where("id", "=", connectionId as any)
-        .execute();
+export const createConnection = createLoggedInEndpoint(
+  "/create-connection",
+  { method: "POST", body: z.object({ connectionString: z.string() }) },
+  async (c) => {
+    const user = c.context.user;
+    const { connectionString } = c.body;
 
-      return c.json({});
-    },
-  );
+    const connection = await db
+      .insertInto("connection")
+      .values({ user_id: user.id, connection_string: connectionString })
+      .returningAll()
+      .executeTakeFirst();
 
-export type ConnectionRoutes = typeof connectionRoutes;
+    return { connection };
+  },
+);
+
+export const removeConnection = createLoggedInEndpoint(
+  "/remove-connection",
+  { method: "POST", body: z.object({ connectionId: z.number() }) },
+  async (c) => {
+    const { connectionId } = c.body;
+
+    await db
+      .deleteFrom("connection")
+      .where("id", "=", connectionId as any)
+      .execute();
+
+    return {};
+  },
+);
+
+export const connectionRoutes = {
+  getConnections,
+  createConnection,
+  removeConnection,
+};

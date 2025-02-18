@@ -1,6 +1,6 @@
 import { Kysely } from "kysely";
 import * as esbuild from "esbuild";
-import { Module, SourceTextModule, createContext } from "node:vm";
+import { SourceTextModule, createContext } from "node:vm";
 type ExecuteOptions = {
   code: string;
   db: Kysely<any>;
