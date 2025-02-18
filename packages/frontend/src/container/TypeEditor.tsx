@@ -57,7 +57,7 @@ export const TypeEditor = () => {
       <Editor
         height="100%"
         defaultLanguage="typescript"
-        defaultValue={`// Select a database connection to see its types`}
+        defaultValue={initialString}
         theme="vs-dark"
         className="type-editor"
         options={editorOptions}
@@ -78,6 +78,8 @@ export const TypeEditor = () => {
     </Flex>
   );
 };
+
+const initialString = "// Select a database connection to see its types";
 type DialectName =
   | "bun-sqlite"
   | "kysely-bun-sqlite"
@@ -146,6 +148,10 @@ const TypeStringUpdater = ({ connection }: { connection: WsActor }) => {
   useEffect(() => {
     if (!typeEditor) return;
     typeEditor.setValue(typeString ?? "");
+
+    return () => {
+      typeEditor.setValue(initialString);
+    };
   }, [typeString, typeEditor]);
 
   return null;

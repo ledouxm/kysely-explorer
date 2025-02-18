@@ -27,9 +27,9 @@ export const DbConnections = ({ children }: PropsWithChildren<{}>) => {
     (state) => state.context.toRemove,
   );
   return (
-    <Stack flex="1" p="16px">
+    <Stack flex="1" p="16px" w="100%">
       <ConnectionForm />
-      <Stack>
+      <Stack w="100%">
         {connections.map((connection) => (
           <Connection
             wsActor={connection}
@@ -73,19 +73,20 @@ const Connection = ({
         : "red-1";
 
   return (
-    <Flex alignItems="center" opacity={isGettingRemoved ? 0.5 : 1}>
+    <Flex alignItems="center" opacity={isGettingRemoved ? 0.5 : 1} maxW="100%">
       <Tooltip content={<styled.div>{error || value}</styled.div>}>
         <styled.div
+          flex="0 0 auto"
           bgColor={color}
           borderRadius="50%"
           w="10px"
           h="10px"
           minW="10px"
           minH="10px"
-          mr="8px"
         ></styled.div>
       </Tooltip>
       <styled.div
+        flex="1 1 auto"
         cursor="pointer"
         fontWeight={isSelected ? "bold" : "normal"}
         onClick={() =>
@@ -94,10 +95,15 @@ const Connection = ({
             connection: wsActor,
           })
         }
+        mx="8px"
+        textOverflow="ellipsis"
+        overflow="hidden"
+        whiteSpace="nowrap"
       >
         {hidePasswords(name)}
       </styled.div>
       <IconButton
+        flex="0 0 auto"
         onClick={() => {
           connectionsActor.send({
             type: "REMOVE_CONNECTION",

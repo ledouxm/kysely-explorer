@@ -173,7 +173,8 @@ const File = ({ fileActor }: { fileActor: FileActor }) => {
       h="100%"
       justifyContent="space-between"
       bgColor={isSelected ? "background-secondary" : "background-tertiary"}
-      px="8px"
+      pr="8px"
+      pl="12px"
       color={isSelected ? "text-primary" : "text-secondary"}
       onClick={() =>
         filesActor.send({
