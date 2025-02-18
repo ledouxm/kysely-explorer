@@ -37,6 +37,7 @@
     "react-icons": "^5.4.0",
     "react-split": "^2.0.14",
     "socket.io-client": "^4.8.1",
+    "sql-formatter": "^15.4.10",
     "xstate": "^5.19.2"
   },
   "imports": {
@@ -50,6 +51,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "ai": "^4.1.41",
     "eslint": "^9.19.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.18",

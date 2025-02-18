@@ -8,6 +8,7 @@ import { ref } from "../hmr";
 import { connectionRoutes } from "./connectionRouter";
 import { fileRoutes } from "./fileRouter";
 import { publicRoutes } from "./publicRouter";
+import { llmRoutes } from "./llmRouter";
 
 export const makeRouter = () => {
   const router = new Hono();
@@ -52,6 +53,7 @@ const appRouter = createRouter(
     ...connectionRoutes,
     ...publicRoutes,
     ...fileRoutes,
+    ...llmRoutes,
   },
   {
     basePath: "/api",
