@@ -32,6 +32,7 @@ export const userDirExistsMiddleware = async (
 const loggedInMiddleware = createMiddleware(async (ctx) => {
   if (!ctx.headers) throw new APIError("FORBIDDEN");
   const session = await auth.api.getSession({ headers: ctx.headers });
+
   if (!session) throw new APIError("FORBIDDEN");
   return { user: session.user, session };
 });
