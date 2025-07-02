@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createLoggedInEndpoint } from "./routerUtils";
-import { db } from "../db";
+import { createLoggedInEndpoint } from "./routerUtils.ts";
+import { db } from "../db.ts";
 
 export const getConnections = createLoggedInEndpoint(
   "/get-connections",

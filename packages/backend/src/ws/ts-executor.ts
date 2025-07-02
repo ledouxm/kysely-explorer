@@ -1,4 +1,4 @@
-import { Kysely } from "kysely";
+import type { Kysely } from "kysely";
 import * as esbuild from "esbuild";
 import { SourceTextModule, createContext } from "node:vm";
 type ExecuteOptions = {

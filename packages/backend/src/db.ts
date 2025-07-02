@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
-import { ENV } from "./envVar";
+import { ENV } from "./envVar.ts";
 import fs from "fs/promises";
-import { DB } from "./db-types";
+import type { DB } from "./db-types.d.ts";
 
 const sqlite = new Database(ENV.AUTH_DB_PATH);
 const dialect = new SqliteDialect({
@@ -12,9 +12,7 @@ const dialect = new SqliteDialect({
 export const db = new Kysely<DB>({ dialect });
 
 export const initDb = async () => {
-  const migrationsDir = await fs
-    .readdir("./better-auth_migrations")
-    .catch(() => {});
+  const migrationsDir = await fs.readdir("./better-auth_migrations").catch(() => {});
 
   if (!migrationsDir) {
     console.log("No migrations found");
@@ -32,29 +30,25 @@ export const initDb = async () => {
 
   for (const migration of migrations) {
     console.log(`Applying migration ${migration}`);
-    const sql = await fs.readFile(
-      `./better-auth_migrations/${migration}`,
-      "utf-8",
-    );
+    const sql = await fs.readFile(`./better-auth_migrations/${migration}`, "utf-8");
     sqlite.exec(sql);
 
     sqlite
       .prepare(
         `
             INSERT INTO migration (name) VALUES (?);
-        `,
+        `
       )
       .run(migration);
   }
 };
 
 const getAppliedMigrations = async () => {
-  // table migration exists
   const tableExists = sqlite
     .prepare(
       `
         SELECT name FROM sqlite_master WHERE type='table' AND name='migration';
-    `,
+    `
     )
     .get();
 
@@ -71,7 +65,7 @@ const getAppliedMigrations = async () => {
     .prepare(
       `
         SELECT name FROM migration;
-    `,
+    `
     )
     .all();
 

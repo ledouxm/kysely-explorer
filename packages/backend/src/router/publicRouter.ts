@@ -1,5 +1,5 @@
-import { db } from "../db";
-import { createPublicEnpoint } from "./routerUtils";
+import { db } from "../db.ts";
+import { createPublicEnpoint } from "./routerUtils.ts";
 
 const isFirstConnection = createPublicEnpoint(
   "/is-first-connection",
@@ -11,7 +11,7 @@ const isFirstConnection = createPublicEnpoint(
       .executeTakeFirst();
 
     return hasUsers!.count === 0;
-  },
+  }
 );
 
 export const publicRoutes = { isFirstConnection };

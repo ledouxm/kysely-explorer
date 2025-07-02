@@ -1,6 +1,6 @@
-import { auth } from "../auth";
+import { auth } from "../auth.ts";
 import { APIError, createEndpoint, createMiddleware } from "better-call";
-import { ENV } from "../envVar";
+import { ENV } from "../envVar.ts";
 import fs from "fs/promises";
 import path from "path";
 
@@ -30,21 +30,16 @@ export const createPublicEnpoint = createEndpoint.create({
 });
 
 export const filesDirectory = path.resolve(ENV.USER_FILES_DIRECTORY);
-export const safelyResolveUserDirPath = (
-  userId: string,
-  userProvidedPath: string,
-) => {
+export const safelyResolveUserDirPath = (userId: string, userProvidedPath: string) => {
   const userDir = path.join(filesDirectory, userId.toString());
 
   try {
-    const normalizedPath = path
-      .normalize(userProvidedPath)
-      .replace(/^(\.\.(\/|\\|$))+/, "");
+    const normalizedPath = path.normalize(userProvidedPath).replace(/^(\.\.(\/|\\|$))+/, "");
 
     const absolutePath = path.join(userDir, normalizedPath);
 
     if (!absolutePath.startsWith(userDir)) {
-      throw {};
+      throw new APIError("FORBIDDEN");
     }
 
     return absolutePath;

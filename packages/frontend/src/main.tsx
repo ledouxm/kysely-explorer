@@ -6,7 +6,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { asyncQueryStorage } from "./persister.ts";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { Provider } from "./components/ui/provider";
 import { ColorModeProvider } from "./components/ui/color-mode.tsx";
 import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
 import { theme } from "./theme";

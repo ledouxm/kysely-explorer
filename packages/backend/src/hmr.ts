@@ -1,7 +1,6 @@
-import { Server } from "socket.io";
-import { Server as HttpServer } from "http";
-import {} from "hono";
-import { ServerType } from "@hono/node-server";
+import type { Server } from "socket.io";
+import type { Server as HttpServer } from "http";
+import type { ServerType } from "@hono/node-server";
 
 export const ref = {} as {
   io: Server;

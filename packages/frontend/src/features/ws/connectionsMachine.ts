@@ -1,12 +1,5 @@
 import { Socket } from "socket.io-client";
-import {
-  ActorRefFromLogic,
-  assertEvent,
-  assign,
-  createActor,
-  fromPromise,
-  setup,
-} from "xstate";
+import { ActorRefFromLogic, assertEvent, assign, createActor, fromPromise, setup } from "xstate";
 import { api, connectToWSS } from "../../api";
 
 export type WsActor = ActorRefFromLogic<WsMachine>;
@@ -51,9 +44,7 @@ const formatColumnDefinition = (column: ColumnMetadata): string => {
 
 const tableToTsv = (table: TableMetadata): string => {
   const header = `Table: ${table.schema ? `${table.schema}.` : ""}${table.name} (${table.isView ? "VIEW" : "TABLE"})`;
-  const columnRows = table.columns.map(
-    (col) => `${col.name}\t${formatColumnDefinition(col)}`,
-  );
+  const columnRows = table.columns.map((col) => `${col.name}\t${formatColumnDefinition(col)}`);
 
   return `${header}\n${columnRows.join("\n")}`;
 };
@@ -82,19 +73,15 @@ export const connectionsMachine = setup({
     getConnections: fromPromise(async () => {
       return api("/get-connections", {});
     }),
-    addConnection: fromPromise(
-      async ({ input }: { input: { connectionString: string } }) => {
-        return api("@post/create-connection", { body: input });
-      },
-    ),
-    removeConnection: fromPromise(
-      async ({ input }: { input: { id: number } }) => {
-        await api("@post/remove-connection", {
-          body: { connectionId: input.id },
-        });
-        return input.id;
-      },
-    ),
+    addConnection: fromPromise(async ({ input }: { input: { connectionString: string } }) => {
+      return api("@post/create-connection", { body: input });
+    }),
+    removeConnection: fromPromise(async ({ input }: { input: { id: number } }) => {
+      await api("@post/remove-connection", {
+        body: { connectionId: input.id },
+      });
+      return input.id;
+    }),
   },
   actions: {
     selectConnection: assign({
@@ -134,7 +121,7 @@ export const connectionsMachine = setup({
                     connectionString: conn.connection_string,
                     id: conn.id as any,
                   },
-                }),
+                })
               ),
           }),
         },
@@ -184,14 +171,12 @@ export const connectionsMachine = setup({
           actions: assign(({ context, event }) => {
             const id = event.output as any;
             const connection = context.connections.find(
-              (connection) => connection.getSnapshot().context.id === id,
+              (connection) => connection.getSnapshot().context.id === id
             );
 
             connection?.send({ type: "DISCONNECT" });
 
-            context.connections = context.connections.filter(
-              (conn) => conn !== connection,
-            );
+            context.connections = context.connections.filter((conn) => conn !== connection);
 
             if (context.selected?.getSnapshot().context.id === id) {
               context.selected = null;
@@ -218,8 +203,7 @@ export const connectionsMachine = setup({
           guard: ({ context, event }) => {
             return !context.connections.some(
               (connection) =>
-                connection.getSnapshot().context.connectionString ===
-                event.connectionString,
+                connection.getSnapshot().context.connectionString === event.connectionString
             );
           },
         },
@@ -292,13 +276,9 @@ const wsMachine = setup({
 
       socket.on(
         "db-types",
-        (data: {
-          typeString: string;
-          dialect: string;
-          tables: TableMetadata[];
-        }) => {
+        (data: { typeString: string; dialect: string; tables: TableMetadata[] }) => {
           self.send({ type: "DB_INFO", data });
-        },
+        }
       );
 
       socket.on("disconnect", () => {

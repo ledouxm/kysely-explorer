@@ -3,3 +3,5 @@ node_modules
 user_files
 *.db
 trace-dir*
+.local
+dist

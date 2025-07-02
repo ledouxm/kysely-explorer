@@ -3,7 +3,7 @@ import {
   createLoggedInEndpoint,
   filesDirectory,
   safelyResolveUserDirPath,
-} from "./routerUtils";
+} from "./routerUtils.ts";
 import fs from "fs/promises";
 import { z } from "zod";
 

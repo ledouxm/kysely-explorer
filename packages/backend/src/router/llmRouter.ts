@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createLoggedInEndpoint } from "./routerUtils";
-import { CoreMessage, coreMessageSchema, generateObject } from "ai";
+import { createLoggedInEndpoint } from "./routerUtils.ts";
+import { type CoreMessage, coreMessageSchema, generateObject } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 
 const askChatGPT = createLoggedInEndpoint(
@@ -63,7 +63,7 @@ const askChatGPT = createLoggedInEndpoint(
         } satisfies CoreMessage,
       ],
     };
-  },
+  }
 );
 
 export const llmRoutes = {

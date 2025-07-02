@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
-import { db } from "./db";
-import { ENV } from "./envVar";
+import { db } from "./db.ts";
+import { ENV } from "./envVar.ts";
 
 export const auth = betterAuth({
   database: {

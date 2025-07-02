@@ -1,18 +1,16 @@
-import { Center, Flex, Stack, styled } from "#styled-system/jsx";
-import { useQuery } from "@tanstack/react-query";
-import { PropsWithChildren, useState } from "react";
+import { Flex, Stack, styled } from "#styled-system/jsx";
 import { useSelector } from "@xstate/react";
-import {
-  connectionsActor,
-  databasesToTsv,
-  WsMachine,
-} from "./connectionsMachine";
+import { XIcon } from "lucide-react";
+import { PropsWithChildren } from "react";
 import { useForm } from "react-hook-form";
 import { ActorRefFromLogic } from "xstate";
-import { Tooltip } from "../../components/Tooltip";
 import { Button, IconButton } from "../../components/Button";
 import { Input } from "../../components/Input";
-import { XIcon } from "lucide-react";
+import { Tooltip } from "../../components/Tooltip";
+import {
+  connectionsActor,
+  WsMachine,
+} from "./connectionsMachine";
 
 export const DbConnections = ({ children }: PropsWithChildren<{}>) => {
   const connections = useSelector(

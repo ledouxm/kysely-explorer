@@ -1,11 +1,11 @@
 import fs from "fs/promises";
-import { Kysely } from "kysely";
+import type { Kysely } from "kysely";
 import {
   ConnectionStringParser,
   DEFAULT_DATE_PARSER,
   DEFAULT_NUMERIC_PARSER,
   DialectManager,
-  DialectName,
+  type DialectName,
   generate,
 } from "kysely-codegen";
 
@@ -16,10 +16,9 @@ const dialectManager = new DialectManager({
 
 export const connectAndGetDialect = async (string: string) => {
   const connectionStringParser = new ConnectionStringParser();
-  const { connectionString, inferredDialectName } =
-    connectionStringParser.parse({
-      connectionString: string,
-    });
+  const { connectionString, inferredDialectName } = connectionStringParser.parse({
+    connectionString: string,
+  });
 
   const dialect = dialectManager.getDialect(inferredDialectName);
 
@@ -38,10 +37,7 @@ export const connectAndGetDialect = async (string: string) => {
   return { db, dialect: inferredDialectName };
 };
 
-export const getTypeString = async (
-  db: Kysely<any>,
-  dialectName: DialectName,
-) => {
+export const getTypeString = async (db: Kysely<any>, dialectName: DialectName) => {
   const dialect = dialectManager.getDialect(dialectName);
 
   return generate({
