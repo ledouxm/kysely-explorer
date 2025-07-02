@@ -4,12 +4,22 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3006:3005"
+      - "3007:3005"
     environment:
       FIRST_CONNECTION_TOKEN: ${FIRST_CONNECTION_TOKEN}
       AUTH_SECRET: ${AUTH_SECRET}
     volumes:
-      - ./docker-data:/app/data
+      - ./docker-data2:/app/data
+
+  # explorer:
+  #   image: ghcr.io/ledouxm/kysely-explorer:latest
+  #   ports:
+  #     - "3006:3005"
+  #   environment:
+  #     FIRST_CONNECTION_TOKEN: ${FIRST_CONNECTION_TOKEN}
+  #     AUTH_SECRET: ${AUTH_SECRET}
+  #   volumes:
+  #     - ./docker-data:/app/data
 
   postgres:
     image: postgres:latest
