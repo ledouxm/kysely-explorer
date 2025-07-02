@@ -1,12 +1,12 @@
 import { io, Socket } from "socket.io-client";
-import { hc } from "hono/client";
 import { AppRouter } from "../../backend/src/router/router";
 import { createClient } from "better-call/client";
 
 const sockets = new Map<string, Socket>();
+const isDev = import.meta.env.DEV;
 
 export const connectToWSS = (connectionString: string) => {
-  const socket = io("http://localhost:3001", {
+  const socket = io(isDev ? "http://localhost:3005" : "/", {
     auth: {
       connectionString,
     },
@@ -26,7 +26,7 @@ export const cleanup = () => {
 };
 
 export const api = createClient<AppRouter>({
-  baseURL: "http://localhost:3005/api",
+  baseURL: isDev ? "http://localhost:3005/api" : "/api",
   throw: true,
   credentials: "include",
 });

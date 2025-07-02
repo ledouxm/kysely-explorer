@@ -51,6 +51,8 @@ export const makeRouter = ({ port } = { port: 3005 }) => {
     },
     (address) => console.log(`Hono listening on ${address.address}:${address.port}`)
   );
+
+  return ref.router;
 };
 
 const appRouter = createRouter(

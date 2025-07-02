@@ -1,38 +1,40 @@
 # Use Node.js LTS version
 FROM node:22-alpine
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
 # Set working directory
 WORKDIR /app
 
 # Copy package.json files for dependency installation
-COPY package.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/frontend/package.json ./packages/frontend/
 COPY packages/backend/package.json ./packages/backend/
 
-# Install dependencies using npm instead of pnpm to avoid permission issues
-WORKDIR /app/packages/frontend
-RUN npm install
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-WORKDIR /app/packages/backend  
-RUN npm install
-
-# Copy source code
-WORKDIR /app
+# Copy source code (excluding node_modules)
 COPY packages/ ./packages/
+COPY docker-compose.yaml ./
 COPY .env* ./
 
 # Build frontend first
 WORKDIR /app/packages/frontend
-RUN npm run build
+RUN pnpm run build
 
-# Switch to backend directory
+# Switch to backend directory and build
 WORKDIR /app/packages/backend
 
 # Set environment variable to point to frontend dist folder
 ENV FRONTEND_FOLDER=/app/packages/frontend/dist
 
-# Expose the port
+# Build backend (if there's a build script, otherwise this step can be skipped for dev)
+RUN pnpm run build
+
+# Expose the port (adjust based on your backend port)
 EXPOSE 3005
 
 # Start the backend server
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]

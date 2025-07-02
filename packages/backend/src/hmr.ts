@@ -1,22 +1,22 @@
 import type { Server } from "socket.io";
-import type { Server as HttpServer } from "http";
 import type { ServerType } from "@hono/node-server";
 
 export const ref = {} as {
   io: Server;
-  httpServer: HttpServer;
+  httpInstance: ServerType;
   router: ServerType;
 };
 
 export async function registerViteHmrServerRestart() {
+  // @ts-ignore
   const hot = (import.meta as any).hot;
   if (hot) {
     await hot.data.stopping;
     // This is executed on file changed
     let reload = async () => {
       console.info("Performing an HMR reload...");
-      ref.io.close();
-      ref.httpServer.close();
+      ref.io?.close();
+      ref.httpInstance?.close();
       ref.router?.close();
     };
     hot.on("vite:beforeFullReload", async () => {

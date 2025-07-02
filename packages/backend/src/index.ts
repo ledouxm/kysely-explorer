@@ -8,8 +8,8 @@ import { filesDirectory } from "./router/routerUtils.ts";
 const main = async () => {
   await initDb();
   await fs.mkdir(filesDirectory, { recursive: true }).catch(() => {});
-  startWsServer();
-  makeRouter();
+  const router = makeRouter();
+  startWsServer({ httpInstance: router });
 };
 
 main();
