@@ -4,7 +4,12 @@ import { ENV } from "./envVar.ts";
 import fs from "fs/promises";
 import type { DB } from "./db-types.d.ts";
 
-const sqlite = new Database(ENV.AUTH_DB_PATH);
+const sqlite = new Database(ENV.AUTH_DB_PATH, {
+  fileMustExist: false,
+  readonly: false,
+});
+sqlite.pragma("journal_mode = WAL");
+
 const dialect = new SqliteDialect({
   database: sqlite,
 });

@@ -1,40 +1,49 @@
-# Use Node.js LTS version
-FROM node:22-alpine
-
-# Install pnpm globally
+FROM node:22-alpine AS with-pnpm
 RUN npm install -g pnpm
 
-# Set working directory
+FROM with-pnpm AS deps
+
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
-# Copy package.json files for dependency installation
+COPY .npmrc ./
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/frontend/package.json ./packages/frontend/
 COPY packages/backend/package.json ./packages/backend/
+COPY packages/frontend/panda.config.ts ./packages/frontend/
+COPY packages/frontend/src/theme.ts ./packages/frontend/src/
 
-# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source code (excluding node_modules)
-COPY packages/ ./packages/
-COPY docker-compose.yaml ./
-COPY .env* ./
+FROM deps AS builder
+WORKDIR /app
 
-# Build frontend first
-WORKDIR /app/packages/frontend
-RUN pnpm run build
+COPY ./packages/frontend ./packages/frontend
+RUN pnpm frontend build
 
-# Switch to backend directory and build
-WORKDIR /app/packages/backend
+FROM with-pnpm AS runner
+WORKDIR /app
 
-# Set environment variable to point to frontend dist folder
+COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=deps /app/packages/backend/ ./packages/backend
+COPY ./packages/backend ./packages/backend
+COPY .npmrc ./
+
+
+RUN mkdir -p /app/data && \
+    chown -R node:node /app/data
+
 ENV FRONTEND_FOLDER=/app/packages/frontend/dist
+ENV AUTH_DB_PATH=/app/data/auth.db
+ENV USER_FILES_DIRECTORY=/app/data/user_files
 
-# Build backend (if there's a build script, otherwise this step can be skipped for dev)
-RUN pnpm run build
 
-# Expose the port (adjust based on your backend port)
-EXPOSE 3005
 
-# Start the backend server
-CMD ["pnpm", "run", "dev"]
+USER node
+
+
+CMD ["pnpm", "backend", "start"]

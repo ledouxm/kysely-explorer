@@ -1,14 +1,24 @@
-version: "3.8"
-
 services:
+  explorer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3006:3005"
+    environment:
+      FIRST_CONNECTION_TOKEN: ${FIRST_CONNECTION_TOKEN}
+      AUTH_SECRET: ${AUTH_SECRET}
+    volumes:
+      - ./docker-data:/app/data
+
   postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: user_xyz789
       POSTGRES_PASSWORD: postgrespassword
       POSTGRES_DB: testdb
-    ports:
-      - "49152:5432"
+    # ports:
+    #   - "49152:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user_xyz789 -d testdb"]
       interval: 10s
@@ -22,8 +32,8 @@ services:
       MYSQL_USER: mysql_user_abc123
       MYSQL_PASSWORD: mysqlpassword
       MYSQL_DATABASE: testdb
-    ports:
-      - "49153:3306"
+    # ports:
+    #   - "49153:3306"
     healthcheck:
       test:
         [
@@ -46,8 +56,8 @@ services:
       ACCEPT_EULA: Y
       MSSQL_SA_PASSWORD: MSSQLpassword0
       MSSQL_PID: Developer
-    ports:
-      - "49154:1433"
+    # ports:
+    #   - "49154:1433"
     healthcheck:
       test:
         [
@@ -72,10 +82,10 @@ services:
     image: ghcr.io/tursodatabase/libsql-server:latest
     environment:
       ADMIN_TOKEN: tursopassword
-    ports:
-      - "49155:8080"
+    # ports:
+    #   - "49155:8080"
     command: ["--http-port", "8080", "--auth-token", "tursopassword"]
-# postgresql://user_xyz789:postgrespassword@localhost:49152/testdb
-# mysql://mysql_user_abc123:mysqlpassword@localhost:49153/testdb
-# Server=localhost,49154;Database=master;User Id=sa;Password=MSSQLpassword0;TrustServerCertificate=True
-# http://localhost:49155?auth_token=tursopassword
+# postgresql://user_xyz789:postgrespassword@postgres/testdb
+# mysql://mysql_user_abc123:mysqlpassword@mysql/testdb
+# Server=mssql,1433;Database=master;User Id=sa;Password=MSSQLpassword0;TrustServerCertificate=True
+# http://turso:8080?auth_token=tursopassword

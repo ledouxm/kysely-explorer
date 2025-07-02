@@ -10,13 +10,13 @@ import { fileRoutes } from "./fileRouter.ts";
 import { publicRoutes } from "./publicRouter.ts";
 import { llmRoutes } from "./llmRouter.ts";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { ENV } from "../envVar.ts";
+import { ENV, isDev } from "../envVar.ts";
 
 export const makeRouter = ({ port } = { port: 3005 }) => {
   const router = new Hono();
   router.use(
     cors({
-      origin: "http://localhost:5173",
+      origin: isDev ? "*" : "same-origin",
       credentials: true,
       allowHeaders: [
         "Content-Type",
@@ -39,6 +39,7 @@ export const makeRouter = ({ port } = { port: 3005 }) => {
 
   router.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
   router.on(["GET", "POST"], "/api/*", (c) => appRouter.handler(c.req.raw));
+
   if (ENV.FRONTEND_FOLDER) {
     console.log("Serving static files from:", ENV.FRONTEND_FOLDER);
     router.on(["GET"], "/*", serveStatic({ root: ENV.FRONTEND_FOLDER }));
@@ -49,7 +50,8 @@ export const makeRouter = ({ port } = { port: 3005 }) => {
       fetch: router.fetch,
       port: port,
     },
-    (address) => console.log(`Hono listening on ${address.address}:${address.port}`)
+    (address) =>
+      console.log(`Hono listening on ${address.address}:${address.port} [${ENV.NODE_ENV}]`)
   );
 
   return ref.router;

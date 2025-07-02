@@ -10,6 +10,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  secret: ENV.AUTH_SECRET,
   plugins: [
     {
       id: "root-user",
