@@ -30,6 +30,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check if version already exists
+        id: version-check
+        run: |
+          VERSION=${{ steps.package-version.outputs.version }}
+          IMAGE_URL="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}"
+
+          if docker manifest inspect "${IMAGE_URL}" > /dev/null 2>&1; then
+            echo "❌ Version ${VERSION} already exists in the registry!"
+            echo "Please update the version in package.json before pushing."
+            exit 1
+          else
+            echo "✅ Version ${VERSION} does not exist. Proceeding with build..."
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
